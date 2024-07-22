@@ -129,7 +129,7 @@ def kill_9_segment_processes(datadir, port, pid):
         pid_list = [pid]
 
     cmd = Command('get a list of processes to kill -9',
-                  cmdStr='ps ux | grep "[p]ostgres:\s*%s" | awk \'{print $2}\'' % (port))
+                  cmdStr='ps ux | grep "[p]ostgres:\\s*%s" | awk \'{print $2}\'' % (port))
 
     try:
         cmd.run(validateAfter=True)
