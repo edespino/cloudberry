@@ -70,7 +70,7 @@ core:
 	python3 gpconfig_modules/parse_guc_metadata.py $(DESTDIR)$(prefix)
 
 ifeq ($(with_pythonsrc_ext), yes)
-install: installdirs installprograms core psutil pygresql pyyaml
+install: installdirs installprograms core pygresql
 else
 install: installdirs installprograms core
 endif
