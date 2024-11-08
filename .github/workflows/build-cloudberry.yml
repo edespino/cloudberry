@@ -1,0 +1,251 @@
+# --------------------------------------------------------------------
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed
+# with this work for additional information regarding copyright
+# ownership. The ASF licenses this file to You under the Apache
+# License, Version 2.0 (the "License"); you may not use this file
+# except in compliance with the License. You may obtain a copy of the
+# License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# --------------------------------------------------------------------
+#
+# This workflow:
+# 1. Runs on push to build-devel branch, pull requests, or manual workflow dispatch
+# 2. Uses Rocky Linux 9 based container with build dependencies
+# 3. Sets up build environment and permissions
+# 4. Executes container initialization
+# 5. Runs the Apache CloudBerry configure script
+# 6. Runs the Apache CloudBerry build script
+# 7. Runs the Apache CloudBerry unittest script
+# 8. Creates Apache CloudBerry demo cluster
+# 9. Runs Apache CloudBerry installcheck tests
+# 10. Captures build logs and generates build report
+# 11. Verifies build artifacts
+#
+# Environment Variables:
+#   LOG_RETENTION_DAYS: Number of days to retain build logs (default: 7)
+#   BUILD_TIMESTAMP: Timestamp of build start
+#   SRC_DIR: Source directory path
+#
+# --------------------------------------------------------------------
+
+name: Apache CloudBerry Build
+
+on:
+  push:
+    branches:
+      - build-devel
+  pull_request:
+    branches:
+      - build-devel
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  LOG_RETENTION_DAYS: 7
+
+permissions:
+  contents: read
+  packages: read
+  actions: write
+
+jobs:
+  build:
+    name: Build Apache Cloudberry
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    container:
+      image: eespino/cbdb-build-rocky9:latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      options: >-
+        --user root
+        -h cdw
+
+    steps:
+    - name: Set build timestamp
+      run: echo "BUILD_TIMESTAMP=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_ENV
+
+    - name: Checkout Apache CloudBerry repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Checkout build scripts repository
+      uses: actions/checkout@v4
+      with:
+        repository: edespino/cloudberry-devops-release
+        path: cloudberry-devops-release
+        ref: build_automation
+
+    - name: Setup Apache Cloudberry build environment
+      run: |
+        set -eo pipefail
+        mkdir -p build-logs/details
+        chown -R gpadmin:gpadmin .
+        chmod -R 755 .
+        chmod 777 build-logs
+
+        {
+          echo "=== Environment Information ==="
+          uname -a
+          gcc --version
+          df -h
+          free -h
+          ps aux
+          env
+        } >> build-logs/details/environment.log
+
+        echo "SRC_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+
+    - name: Run Apache Cloudberry configure script
+      env:
+        SRC_DIR: ${{ github.workspace }}
+      run: |
+        set -eo pipefail
+
+        if ! su - gpadmin -c "/tmp/init_system.sh"; then
+          echo "::error::Container initialization failed"
+          exit 1
+        fi
+
+        chmod +x ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/configure-cloudberry.sh
+        if ! time su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/configure-cloudberry.sh"; then
+          echo "::error::Build script failed"
+          exit 1
+        fi
+
+    - name: Run Apache Cloudberry build script
+      env:
+        SRC_DIR: ${{ github.workspace }}
+      run: |
+        set -eo pipefail
+
+        chmod +x ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/build-cloudberry.sh
+        if ! time su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/build-cloudberry.sh"; then
+          echo "::error::Build script failed"
+          exit 1
+        fi
+
+    - name: Run Apache Cloudberry unittest script
+      env:
+        SRC_DIR: ${{ github.workspace }}
+      run: |
+        set -eo pipefail
+
+        chmod +x ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/unittest-cloudberry.sh
+        if ! time su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/unittest-cloudberry.sh"; then
+          echo "::error::Unittest script failed"
+          exit 1
+        fi
+
+    - name: Create Apache Cloudberry demo cluster
+      if: success()
+      env:
+        SRC_DIR: ${{ github.workspace }}
+      run: |
+        set -eo pipefail
+
+        chmod +x ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/create-cloudberry-demo-cluster.sh
+        if ! time su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/create-cloudberry-demo-cluster.sh"; then
+          echo "::error::Test execution failed"
+          exit 1
+        fi
+
+    - name: Run Apache Cloudberry installcheck tests
+      if: success()
+      env:
+        SRC_DIR: ${{ github.workspace }}
+      run: |
+        set -eo pipefail
+
+        chmod +x ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/test-cloudberry.sh
+        if ! time su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ${SRC_DIR}/cloudberry-devops-release/build_automation/cloudberry/scripts/test-cloudberry.sh"; then
+          echo "::error::Test execution failed"
+          exit 1
+        fi
+
+    - name: Generate build report
+      if: always()
+      run: |
+        {
+          echo "=== Build Report ==="
+          echo "Build Date: $(date)"
+          echo "Build Status: ${{ job.status }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Runner: ${{ runner.os }}"
+          echo "Container: eespino/cbdb-build-rocky9:latest"
+          echo "Execution Time: ${{ runner.startTime }}"
+        } > build-logs/build-report.md
+
+    - name: Collect detailed build logs
+      if: always()
+      run: |
+        ps aux > build-logs/details/process-state.log
+        df -h > build-logs/details/disk-usage.log
+        free -h > build-logs/details/memory-usage.log
+        env > build-logs/details/environment.log
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-${{ env.BUILD_TIMESTAMP }}
+        path: |
+          build-logs/
+          **/regression.diffs
+          **/regression.out
+        retention-days: ${{ env.LOG_RETENTION_DAYS }}
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "::error::Build failed! Check build logs for details"
+        echo "Build timestamp: ${{ env.BUILD_TIMESTAMP }}"
+        echo "Commit: ${{ github.sha }}"
+
+    - name: Verify build artifacts
+      if: success()
+      run: |
+        set -e
+        if [ ! -d "/usr/local/cloudberry-db" ]; then
+          echo "::error::Build artifacts not found!"
+          exit 1
+        fi
+
+        critical_binaries=(
+          "/usr/local/cloudberry-db/bin/postgres"
+          "/usr/local/cloudberry-db/bin/psql"
+        )
+
+        for binary in "${critical_binaries[@]}"; do
+          if [ ! -f "$binary" ]; then
+            echo "::error::Critical binary missing: $binary"
+            exit 1
+          fi
+          if [ ! -x "$binary" ]; then
+            echo "::error::Binary not executable: $binary"
+            exit 1
+          fi
+        done
+
+        if ! /usr/local/cloudberry-db/bin/postgres --version; then
+          echo "::error::Binary verification failed!"
+          exit 1
+        fi
