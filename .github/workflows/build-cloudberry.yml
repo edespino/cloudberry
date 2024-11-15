@@ -657,7 +657,7 @@ jobs:
     - name: Run installcheck-good tests
       if: success()
       env:
-        MAKE_TARGET: installcheck-good
+        MAKE_TARGET: installcheck-parallel
         SRC_DIR: ${{ github.workspace }}
       run: |
         set -eo pipefail
