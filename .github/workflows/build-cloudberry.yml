@@ -640,6 +640,7 @@ jobs:
       env:
         MAKE_TARGET: installcheck-good
         SRC_DIR: ${{ github.workspace }}
+      shell: bash {0}
       run: |
         set -eo pipefail
         {
