@@ -23,6 +23,7 @@ name: Apache CloudBerry Build
 # Description: Builds, tests, and packages Apache CloudBerry on Rocky Linux 9
 #
 # Workflow Structure:
+
 # 1. Skip Check:
 #    - Evaluates CI skip flags in commit messages or PR titles
 #    - Supports [skip ci], [ci skip], [no ci]
