@@ -667,14 +667,23 @@ jobs:
             echo "✅ All ${{ steps.test-results.outputs.total_tests }} tests passed successfully" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ ${{ steps.test-results.outputs.failed_tests }} of ${{ steps.test-results.outputs.total_tests }} tests failed" >> $GITHUB_STEP_SUMMARY
-            if find . -path "**/regression.diffs" -type f -print -quit | grep -q .; then
-              echo "📄 Check regression.diffs for failure details" >> $GITHUB_STEP_SUMMARY
+
+            # Add failed tests as a bullet list if there are failures
+            if [ -n "${{ steps.test-results.outputs.failed_test_names }}" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+              echo "The following tests failed:" >> $GITHUB_STEP_SUMMARY
+              echo "${{ steps.test-results.outputs.failed_test_names }}" | tr ',' '\n' | while read -r test; do
+                if [ -n "$test" ]; then
+                  echo "* \`${test}\`" >> $GITHUB_STEP_SUMMARY
+                fi
+              done
             fi
           fi
 
           echo "## Installed Package" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          rpm -qi apache-cloudberry-db-incubating >> $GITHUB_STEP_SUMMARY
+          rpm -qi cloudberry-db >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
           echo "## System State" >> $GITHUB_STEP_SUMMARY
