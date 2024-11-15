@@ -612,11 +612,22 @@ jobs:
       run: |
         set -eo pipefail
         {
-          chmod +x  ${SRC_DIR}/../cloudberry-devops-release/build_automation/cloudberry/scripts/parse-test-results.sh
+          chmod +x ${SRC_DIR}/../cloudberry-devops-release/build_automation/cloudberry/scripts/parse-test-results.sh
+          status_code=0
           if ! time ${SRC_DIR}/../cloudberry-devops-release/build_automation/cloudberry/scripts/parse-test-results.sh build-logs/details/make-${MAKE_TARGET}.log; then
-            echo "::error::Test results parsing failed"
-            cat build-logs/details/make-${MAKE_TARGET}.log
-            exit 1
+            status_code=$?
+            if [ $status_code -eq 2 ]; then
+              echo "::error::Could not find or access test results file"
+              exit 1
+            elif [ $status_code -eq 1 ]; then
+              # Test failures were found and properly parsed - this is an "expected" failure
+              echo "Test failures detected but properly parsed"
+              exit 0
+            else
+              echo "::error::Unexpected error during test results parsing"
+              cat build-logs/details/make-${MAKE_TARGET}.log
+              exit 1
+            fi
           fi
         } 2>&1 | tee -a build-logs/details/parse-test-results-${MAKE_TARGET}.log
 
