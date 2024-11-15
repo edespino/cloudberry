@@ -657,10 +657,14 @@ jobs:
               exit 0
             else
               echo "::error::Unexpected error during test results parsing"
-              cat build-logs/details/make-${MAKE_TARGET}.log
               exit 1
             fi
           fi
+
+          # Debug: verify outputs were set
+          echo "Debug: Checking GITHUB_OUTPUT contents:"
+          cat $GITHUB_OUTPUT || true
+
         } 2>&1 | tee -a build-logs/details/parse-test-results-${MAKE_TARGET}.log
 
     - name: Debug Outputs
