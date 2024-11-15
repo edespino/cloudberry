@@ -162,7 +162,7 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-      options: >-
+p      options: >-
         --user root
         -h cdw
 
@@ -666,7 +666,7 @@ jobs:
     - name: Run installcheck-good tests
       if: success()
       env:
-        MAKE_TARGET: installcheck-parallel
+        MAKE_TARGET: installcheck-good
         SRC_DIR: ${{ github.workspace }}
       run: |
         set -eo pipefail
