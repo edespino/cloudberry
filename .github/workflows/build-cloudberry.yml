@@ -18,37 +18,68 @@
 #
 # --------------------------------------------------------------------
 #
-# Workflow Overview:
-# This workflow builds and tests Apache CloudBerry on Rocky Linux 9.
+# GitHub Actions Workflow: Apache CloudBerry Build
+# Description: Builds, tests, and packages Apache CloudBerry on Rocky Linux 9
 #
-# Jobs:
-# 1. Build:
+# Workflow Structure:
+# 1. Build Job:
+#    - Sets up build environment in Rocky Linux 9 container
 #    - Configures and builds CloudBerry
-#    - Creates RPM package and source tarball
 #    - Runs unit tests
-#    - Verifies build artifacts
-#    - Uploads artifacts for test job
+#    - Creates RPM package and source tarball
+#    - Performs build verification
+#    - Uploads build artifacts
 #    Key artifacts: RPM package, source tarball, build logs
 #
-# 2. Test:
-#    - Downloads artifacts from build job
-#    - Installs RPM package
-#    - Extracts source code
+# 2. Test Job:
+#    - Sets up test environment in Rocky Linux 9 container
+#    - Downloads build artifacts
+#    - Installs CloudBerry RPM
 #    - Creates demo cluster
-#    - Runs installcheck tests
-#    Key artifacts: Test logs, regression files
+#    - Executes installcheck tests
+#    - Parses and reports test results
+#    Key artifacts: Test logs, regression files, test summaries
 #
-# 3. Report:
-#    - Generates final build summary
-#    - Reports status of build and test jobs
-#    - Provides job-specific summaries
+# 3. Report Job:
+#    - Generates comprehensive build pipeline report
+#    - Aggregates status from build and test jobs
+#    - Provides failure notifications if needed
+#
+# Triggers:
+#   - Push to build-devel branch
+#   - Pull requests to build-devel branch
+#   - Manual workflow dispatch
 #
 # Environment Variables:
-#   LOG_RETENTION_DAYS: Number of days to retain build logs (default: 7)
-#   BUILD_TIMESTAMP: Timestamp of build start
+#   LOG_RETENTION_DAYS: Number of days to retain logs (default: 7)
+#   BUILD_TIMESTAMP: Build start timestamp
 #   SRC_DIR: Source directory path
 #   CBDB_VERSION: CloudBerry version (99.0.0)
 #   BUILD_NUMBER: Build number (1)
+#   GITHUB_OUTPUT: GitHub Actions output file path
+#
+# Container Images:
+#   Build: apache/incubator-cloudberry:cbdb-build-rocky9-latest
+#   Test:  apache/incubator-cloudberry:cbdb-test-rocky9-latest
+#
+# Dependencies:
+#   - Docker Hub credentials for container access
+#   - CloudBerry build scripts repository
+#   - GitHub Actions artifacts for job communication
+#
+# Artifacts Generated:
+#   - RPM package
+#   - Source tarball
+#   - Build and test logs
+#   - Test results and summaries
+#   - Job execution reports
+#
+# Notes:
+#   - Requires Docker Hub authentication
+#   - Uses concurrent job control
+#   - Provides detailed job summaries
+#   - Includes comprehensive error handling
+#   - Maintains build artifacts for downstream use
 #
 # --------------------------------------------------------------------
 
@@ -648,12 +679,11 @@ jobs:
 
     - name: Generate Test Job Summary End
       if: always()
+      shell: bash
       env:
         LOG_RETENTION_DAYS: 7
         SRC_DIR: ${{ github.workspace }}
-      shell: bash
       run: |
-        # Write to summary file
         {
           echo "## Test Results"
           echo "- End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -688,16 +718,23 @@ jobs:
 
           echo "## Installed Package"
           echo "\`\`\`"
-          rpm -qi cloudberry-db
+          # Try both package names and handle potential failure
+          if rpm -qi apache-cloudberry-db-incubating >/dev/null 2>&1; then
+            rpm -qi apache-cloudberry-db-incubating
+          elif rpm -qi cloudberry-db >/dev/null 2>&1; then
+            rpm -qi cloudberry-db
+          else
+            echo "Package information not available"
+          fi
           echo "\`\`\`"
 
           echo "## System State"
           echo "\`\`\`"
-          df -h | grep /$
+          df -h | grep /$ || echo "Disk usage information not available"
           echo "Memory:"
-          free -h
+          free -h || echo "Memory information not available"
           echo "\`\`\`"
-        } >> $GITHUB_STEP_SUMMARY
+        } >> $GITHUB_STEP_SUMMARY || true
 
     - name: Ensure files are synced
       if: always()
