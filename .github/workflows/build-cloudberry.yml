@@ -1,4 +1,3 @@
-name: Apache CloudBerry Build
 # --------------------------------------------------------------------
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
@@ -95,6 +94,8 @@ name: Apache CloudBerry Build
 #
 # --------------------------------------------------------------------
 
+name: Apache CloudBerry Build
+
 on:
   push:
     branches: [build-devel]
@@ -124,15 +125,23 @@ jobs:
       should_skip: ${{ steps.skip-check.outputs.should_skip }}
     steps:
       - id: skip-check
+        shell: bash
         run: |
-          if [[ "${{ github.event.head_commit.message }}" =~ \[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\] ]] || \
-             [[ "${{ github.event.pull_request.title }}" =~ \[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\] ]]; then
+          # Get the message to check based on event type
+          MESSAGE=""
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            MESSAGE="${{ github.event.pull_request.title }}"
+          else
+            MESSAGE="${{ github.event.head_commit.message }}"
+          fi
+
+          # Check for skip patterns
+          if echo "$MESSAGE" | grep -qE '\[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\]'; then
             echo "should_skip=true" >> $GITHUB_OUTPUT
           else
             echo "should_skip=false" >> $GITHUB_OUTPUT
           fi
 
-      # Mark the check as successful if skipped
       - name: Report Skip Status
         if: steps.skip-check.outputs.should_skip == 'true'
         run: |
