@@ -24,7 +24,6 @@ name: Apache CloudBerry Build
 #
 # Workflow Structure:
 # 1. Skip Check:
-
 #    - Evaluates CI skip flags in commit messages or PR titles
 #    - Supports [skip ci], [ci skip], [no ci]
 #    - Successfully completes all checks if skip detected
