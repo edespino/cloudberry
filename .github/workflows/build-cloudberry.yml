@@ -648,51 +648,56 @@ jobs:
 
     - name: Generate Test Job Summary End
       if: always()
+      env:
+        LOG_RETENTION_DAYS: 7
+        SRC_DIR: ${{ github.workspace }}
+      shell: bash
       run: |
+        # Write to summary file
         {
-          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "- End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results"
+          echo "- End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
           # Add test execution results
-          echo "### Test Execution Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Total Tests | ${{ steps.test-results.outputs.total_tests }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Passed Tests | ${{ steps.test-results.outputs.passed_tests }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Failed Tests | ${{ steps.test-results.outputs.failed_tests }} |" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Execution Summary"
+          echo "| Metric | Count |"
+          echo "|--------|-------|"
+          echo "| Total Tests | ${{ steps.test-results.outputs.total_tests }} |"
+          echo "| Passed Tests | ${{ steps.test-results.outputs.passed_tests }} |"
+          echo "| Failed Tests | ${{ steps.test-results.outputs.failed_tests }} |"
 
           # Test status with emoji based on results
-          echo "### Test Status" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.test-results.outputs.status }}" = "passed" ]; then
-            echo "✅ All ${{ steps.test-results.outputs.total_tests }} tests passed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Status"
+          if [[ "${{ steps.test-results.outputs.status }}" == "passed" ]]; then
+            echo "✅ All ${{ steps.test-results.outputs.total_tests }} tests passed successfully"
           else
-            echo "⚠️ ${{ steps.test-results.outputs.failed_tests }} of ${{ steps.test-results.outputs.total_tests }} tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ ${{ steps.test-results.outputs.failed_tests }} of ${{ steps.test-results.outputs.total_tests }} tests failed"
 
             # Add failed tests as a bullet list if there are failures
-            if [ -n "${{ steps.test-results.outputs.failed_test_names }}" ]; then
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
-              echo "The following tests failed:" >> $GITHUB_STEP_SUMMARY
+            if [[ -n "${{ steps.test-results.outputs.failed_test_names }}" ]]; then
+              echo ""
+              echo "### Failed Tests"
+              echo "The following tests failed:"
               echo "${{ steps.test-results.outputs.failed_test_names }}" | tr ',' '\n' | while read -r test; do
-                if [ -n "$test" ]; then
-                  echo "* \`${test}\`" >> $GITHUB_STEP_SUMMARY
+                if [[ -n "$test" ]]; then
+                  echo "* \`${test}\`"
                 fi
               done
             fi
           fi
 
-          echo "## Installed Package" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          rpm -qi cloudberry-db >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "## Installed Package"
+          echo "\`\`\`"
+          rpm -qi cloudberry-db
+          echo "\`\`\`"
 
-          echo "## System State" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          df -h | grep /$ >> $GITHUB_STEP_SUMMARY
-          echo "Memory:" >> $GITHUB_STEP_SUMMARY
-          free -h >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        }
+          echo "## System State"
+          echo "\`\`\`"
+          df -h | grep /$
+          echo "Memory:"
+          free -h
+          echo "\`\`\`"
+        } >> $GITHUB_STEP_SUMMARY
 
     - name: Ensure files are synced
       if: always()
