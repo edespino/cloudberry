@@ -1,3 +1,4 @@
+name: Apache CloudBerry Build
 # --------------------------------------------------------------------
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +23,12 @@
 # Description: Builds, tests, and packages Apache CloudBerry on Rocky Linux 9
 #
 # Workflow Structure:
-# 1. Build Job:
+# 1. Skip Check:
+#    - Evaluates CI skip flags in commit messages or PR titles
+#    - Supports [skip ci], [ci skip], [no ci]
+#    - Successfully completes all checks if skip detected
+#
+# 2. Build Job:
 #    - Sets up build environment in Rocky Linux 9 container
 #    - Configures and builds CloudBerry
 #    - Runs unit tests
@@ -31,7 +37,7 @@
 #    - Uploads build artifacts
 #    Key artifacts: RPM package, source tarball, build logs
 #
-# 2. Test Job:
+# 3. Test Job:
 #    - Sets up test environment in Rocky Linux 9 container
 #    - Downloads build artifacts
 #    - Installs CloudBerry RPM
@@ -40,7 +46,7 @@
 #    - Parses and reports test results
 #    Key artifacts: Test logs, regression files, test summaries
 #
-# 3. Report Job:
+# 4. Report Job:
 #    - Generates comprehensive build pipeline report
 #    - Aggregates status from build and test jobs
 #    - Provides failure notifications if needed
@@ -49,6 +55,12 @@
 #   - Push to build-devel branch
 #   - Pull requests to build-devel branch
 #   - Manual workflow dispatch
+#
+# Skip CI:
+#   Add one of these flags to commit message or PR title:
+#   - [skip ci]  : Skip all CI checks
+#   - [ci skip]  : Skip all CI checks (alternative)
+#   - [no ci]    : Skip all CI checks (alternative)
 #
 # Environment Variables:
 #   LOG_RETENTION_DAYS: Number of days to retain logs (default: 7)
@@ -83,8 +95,6 @@
 #
 # --------------------------------------------------------------------
 
-name: Apache CloudBerry Build
-
 on:
   push:
     branches: [build-devel]
@@ -106,8 +116,33 @@ env:
   LOG_RETENTION_DAYS: 7
 
 jobs:
+
+  # Initial job to check for skip flags
+  check-skip:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip-check.outputs.should_skip }}
+    steps:
+      - id: skip-check
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" =~ \[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\] ]] || \
+             [[ "${{ github.event.pull_request.title }}" =~ \[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\] ]]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Mark the check as successful if skipped
+      - name: Report Skip Status
+        if: steps.skip-check.outputs.should_skip == 'true'
+        run: |
+          echo "CI Skip flag detected - skipping all checks"
+          exit 0
+
   build:
     name: Build Apache Cloudberry
+    needs: check-skip
+    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     outputs:
@@ -386,7 +421,8 @@ jobs:
 
   test:
     name: Test Apache Cloudberry
-    needs: build
+    needs: [check-skip, build]
+    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -761,9 +797,10 @@ jobs:
           **/regression.out
         retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
+
   report:
     name: Generate Apache Cloudberry Build Report
-    needs: [build, test]
+    needs: [check-skip, build, test]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -771,31 +808,39 @@ jobs:
         run: |
           {
             echo "# Apache CloudBerry Build Pipeline Report" >> $GITHUB_STEP_SUMMARY
-            echo "## Job Status" >> $GITHUB_STEP_SUMMARY
-            echo "- Build Job: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Test Job: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Completion Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
 
-            if [[ "${{ needs.build.result }}" == "success" && "${{ needs.test.result }}" == "success" ]]; then
-              echo "✅ Pipeline completed successfully" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ needs.check-skip.outputs.should_skip }}" == "true" ]]; then
+              echo "## CI Skip Status" >> $GITHUB_STEP_SUMMARY
+              echo "✅ CI checks skipped via skip flag" >> $GITHUB_STEP_SUMMARY
+              echo "- Completion Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
             else
-              echo "⚠️ Pipeline completed with failures" >> $GITHUB_STEP_SUMMARY
+              echo "## Job Status" >> $GITHUB_STEP_SUMMARY
+              echo "- Build Job: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Test Job: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Completion Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
 
-              if [[ "${{ needs.build.result }}" != "success" ]]; then
-                echo "### Build Job Failure" >> $GITHUB_STEP_SUMMARY
-                echo "Check build logs for details" >> $GITHUB_STEP_SUMMARY
-              fi
+              if [[ "${{ needs.build.result }}" == "success" && "${{ needs.test.result }}" == "success" ]]; then
+                echo "✅ Pipeline completed successfully" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "⚠️ Pipeline completed with failures" >> $GITHUB_STEP_SUMMARY
 
-              if [[ "${{ needs.test.result }}" != "success" ]]; then
-                echo "### Test Job Failure" >> $GITHUB_STEP_SUMMARY
-                echo "Check test logs and regression files for details" >> $GITHUB_STEP_SUMMARY
+                if [[ "${{ needs.build.result }}" != "success" ]]; then
+                  echo "### Build Job Failure" >> $GITHUB_STEP_SUMMARY
+                  echo "Check build logs for details" >> $GITHUB_STEP_SUMMARY
+                fi
+
+                if [[ "${{ needs.test.result }}" != "success" ]]; then
+                  echo "### Test Job Failure" >> $GITHUB_STEP_SUMMARY
+                  echo "Check test logs and regression files for details" >> $GITHUB_STEP_SUMMARY
+                fi
               fi
             fi
           }
 
       - name: Notify on failure
-        # Custom condition to check if either build or test failed
-        if: ${{ needs.build.result != 'success' || needs.test.result != 'success' }}
+        if: |
+          needs.check-skip.outputs.should_skip != 'true' &&
+          (needs.build.result != 'success' || needs.test.result != 'success')
         run: |
           echo "::error::Build/Test pipeline failed! Check job summaries and logs for details"
           echo "Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
