@@ -162,7 +162,7 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-p      options: >-
+      options: >-
         --user root
         -h cdw
 
