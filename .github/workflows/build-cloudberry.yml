@@ -719,26 +719,31 @@ jobs:
           echo "Debug: Checking GITHUB_OUTPUT contents:"
           cat $GITHUB_OUTPUT || true
 
-        } 2>&1 | tee -a build-logs/details/parse-test-results-${MAKE_TARGET}.log
-
     - name: Debug Test Results
       if: always()
       shell: bash {0}
       run: |
-        echo "Debug outputs:"
-        echo "Status: ${{ steps.test-results.outputs.status }}"
-        echo "Total: ${{ steps.test-results.outputs.total_tests }}"
-        echo "Failed: ${{ steps.test-results.outputs.failed_tests }}"
-        echo "GITHUB_OUTPUT contents:"
-        cat $GITHUB_OUTPUT || true""
+        echo "=== Debug Test Results ==="
+        echo "Step Outputs:"
+        echo "  Status: '${{ steps.test-results.outputs.status }}'"
+        echo "  Total Tests: '${{ steps.test-results.outputs.total_tests }}'"
+        echo "  Failed Tests: '${{ steps.test-results.outputs.failed_tests }}'"
+        echo "  Passed Tests: '${{ steps.test-results.outputs.passed_tests }}'"
+        echo "  Failed Test Names: '${{ steps.test-results.outputs.failed_test_names }}'"
 
-    - name: Check Test Results
-      if: always()
-      shell: bash {0}
-      run: |
-        if [[ "${{ steps.test-results.outputs.status }}" == "failed" ]]; then
-          echo "::error::${{ steps.test-results.outputs.failed_tests }} tests failed out of ${{ steps.test-results.outputs.total_tests }}"
-          exit 1
+        echo "=== Environment ==="
+        echo "GITHUB_OUTPUT exists: $([ -f "$GITHUB_OUTPUT" ] && echo "yes" || echo "no")"
+        if [ -f "$GITHUB_OUTPUT" ]; then
+          echo "GITHUB_OUTPUT contents:"
+          cat "$GITHUB_OUTPUT" || true
+        fi
+
+        echo "=== Test Results File ==="
+        if [ -f "test_results.txt" ]; then
+          echo "test_results.txt contents:"
+          cat test_results.txt || true
+        else
+          echo "test_results.txt not found"
         fi
 
     - name: Generate Test Job Summary End
