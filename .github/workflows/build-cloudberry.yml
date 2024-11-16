@@ -687,7 +687,7 @@ jobs:
         SRC_DIR: ${{ github.workspace }}
       shell: bash {0}
       run: |
-        set -eo pipefail
+        set -o pipefail
         {
           chmod +x ${SRC_DIR}/../cloudberry-devops-release/build_automation/cloudberry/scripts/parse-test-results.sh
 
