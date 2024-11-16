@@ -803,7 +803,6 @@ jobs:
         # Optional small delay to ensure everything is written
         sleep 2
 
-
     - name: Upload test logs
       if: always()
       uses: actions/upload-artifact@v4
@@ -815,6 +814,29 @@ jobs:
           **/regression.out
         retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
+    - name: Upload test regression logs
+      if: ${{ steps.test-results.outputs.status == 'failed' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: regression-logs-${{ needs.build.outputs.build_timestamp }}
+        path: |
+          src/test/regress/regression.out
+          src/test/regress/regression.diffs
+          src/test/regress/results/
+          src/test/regress/expected/
+          src/test/isolation2/regression.out
+          src/test/isolation2/regression.diffs
+          src/test/isolation2/results/
+          src/test/isolation2/expected/
+          gpAux/gpdemo/datadirs/standby/log/
+          gpAux/gpdemo/datadirs/qddir/demoDataDir-1/log/
+          gpAux/gpdemo/datadirs/dbfast1/demoDataDir0/log/
+          gpAux/gpdemo/datadirs/dbfast2/demoDataDir1/log/
+          gpAux/gpdemo/datadirs/dbfast3/demoDataDir2/log/
+          gpAux/gpdemo/datadirs/dbfast_mirror1/demoDataDir0/log/
+          gpAux/gpdemo/datadirs/dbfast_mirror2/demoDataDir1/log/
+          gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
+        retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
   report:
     name: Generate Apache Cloudberry Build Report
