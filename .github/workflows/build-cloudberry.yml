@@ -721,15 +721,20 @@ jobs:
 
         } 2>&1 | tee -a build-logs/details/parse-test-results-${MAKE_TARGET}.log
 
-    - name: Debug Outputs
+    - name: Debug Test Results
+      if: always()
+      shell: bash {0}
       run: |
+        echo "Debug outputs:"
         echo "Status: ${{ steps.test-results.outputs.status }}"
         echo "Total: ${{ steps.test-results.outputs.total_tests }}"
         echo "Failed: ${{ steps.test-results.outputs.failed_tests }}"
-        echo "Passed: ${{ steps.test-results.outputs.passed_tests }}"
+        echo "GITHUB_OUTPUT contents:"
+        cat $GITHUB_OUTPUT || true""
 
     - name: Check Test Results
       if: always()
+      shell: bash {0}
       run: |
         if [[ "${{ steps.test-results.outputs.status }}" == "failed" ]]; then
           echo "::error::${{ steps.test-results.outputs.failed_tests }} tests failed out of ${{ steps.test-results.outputs.total_tests }}"
@@ -737,8 +742,7 @@ jobs:
         fi
 
     - name: Generate Test Job Summary End
-      if: always()
-      shell: bash
+      shell: bash {0}
       env:
         LOG_RETENTION_DAYS: 7
         SRC_DIR: ${{ github.workspace }}
@@ -794,14 +798,6 @@ jobs:
           free -h || echo "Memory information not available"
           echo "\`\`\`"
         } >> $GITHUB_STEP_SUMMARY || true
-
-    - name: Ensure files are synced
-      if: always()
-      run: |
-        # Force flush all file buffers to disk
-        sync
-        # Optional small delay to ensure everything is written
-        sleep 2
 
     - name: Upload test logs
       if: always()
