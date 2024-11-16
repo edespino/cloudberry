@@ -719,6 +719,8 @@ jobs:
           echo "Debug: Checking GITHUB_OUTPUT contents:"
           cat $GITHUB_OUTPUT || true
 
+        } 2>&1 | tee -a build-logs/details/parse-test-results-${MAKE_TARGET}.log
+
     - name: Debug Test Results
       if: always()
       shell: bash {0}
