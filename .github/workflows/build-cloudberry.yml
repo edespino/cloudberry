@@ -749,6 +749,7 @@ jobs:
         fi
 
     - name: Generate Test Job Summary End
+      if: always()
       shell: bash {0}
       env:
         LOG_RETENTION_DAYS: 7
@@ -817,8 +818,15 @@ jobs:
           **/regression.out
         retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
+    - name: Debug Upload Condition
+      if: always()
+      run: |
+        echo "Upload condition check:"
+        echo "status: '${{ steps.test-results.outputs.status }}'"
+        echo "condition result: ${{ steps.test-results.outputs.status == 'failed' }}"
+
     - name: Upload test regression logs
-      if: ${{ steps.test-results.outputs.status == 'failed' }}
+      if: always() && steps.test-results.outputs.status == 'failed'
       uses: actions/upload-artifact@v4
       with:
         name: regression-logs-${{ needs.build.outputs.build_timestamp }}
