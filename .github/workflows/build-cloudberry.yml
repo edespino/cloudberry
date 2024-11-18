@@ -179,7 +179,6 @@ jobs:
   build:
     name: Build Apache Cloudberry
     needs: check-skip
-    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     outputs:
@@ -195,7 +194,14 @@ jobs:
         -h cdw
 
     steps:
+    - name: Skip Check
+      if: needs.check-skip.outputs.should_skip == 'true'
+      run: |
+        echo "Build skipped via CI skip flag" >> $GITHUB_STEP_SUMMARY
+        exit 0
+
     - name: Set build timestamp
+      if: needs.check-skip.outputs.should_skip != 'true'
       id: set_timestamp  # Add an ID to reference this step
       run: |
         timestamp=$(date +'%Y%m%d_%H%M%S')
@@ -203,11 +209,13 @@ jobs:
         echo "BUILD_TIMESTAMP=$timestamp" | tee -a $GITHUB_ENV # Also set as environment variable
 
     - name: Checkout Apache Cloudberry repository
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
 
     - name: Checkout build scripts repository
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/checkout@v4
       with:
         repository: edespino/cloudberry-devops-release
@@ -215,6 +223,7 @@ jobs:
         ref: build_automation
 
     - name: Move cloudberry-devops-release directory
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
         if ! mv ${GITHUB_WORKSPACE}/cloudberry-devops-release ${GITHUB_WORKSPACE}/..; then
@@ -223,6 +232,7 @@ jobs:
         fi
 
     - name: Setup Apache Cloudberry build environment
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
         if ! su - gpadmin -c "/tmp/init_system.sh"; then
@@ -254,7 +264,7 @@ jobs:
         echo "SRC_DIR=${GITHUB_WORKSPACE}" | tee -a $GITHUB_ENV
 
     - name: Generate Build Job Summary Start
-      if: always()
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         {
           echo "# Build Job Summary" >> $GITHUB_STEP_SUMMARY
@@ -265,6 +275,7 @@ jobs:
         }
 
     - name: Run Apache Cloudberry configure script
+      if: needs.check-skip.outputs.should_skip != 'true'
       env:
         SRC_DIR: ${{ github.workspace }}
       run: |
@@ -276,6 +287,7 @@ jobs:
         fi
 
     - name: Run Apache Cloudberry build script
+      if: needs.check-skip.outputs.should_skip != 'true'
       env:
         SRC_DIR: ${{ github.workspace }}
       run: |
@@ -287,6 +299,7 @@ jobs:
         fi
 
     - name: Verify build artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
 
@@ -335,6 +348,7 @@ jobs:
         } 2>&1 | tee -a build-logs/details/build-verification.log
 
     - name: Create Source tarball, create RPM and verify artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       id: create-artifacts
       env:
         CBDB_VERSION: 99.0.0
@@ -400,6 +414,7 @@ jobs:
         echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
     - name: Run Apache Cloudberry unittest script
+      if: needs.check-skip.outputs.should_skip != 'true'
       env:
         SRC_DIR: ${{ github.workspace }}
       run: |
@@ -448,7 +463,6 @@ jobs:
   rpm-install-test:
     name: RPM Install Test Apache Cloudberry
     needs: [check-skip, build]
-    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -462,7 +476,14 @@ jobs:
         -h cdw
 
     steps:
+    - name: Skip Check
+      if: needs.check-skip.outputs.should_skip == 'true'
+      run: |
+        echo "RPM install test skipped via CI skip flag" >> $GITHUB_STEP_SUMMARY
+        exit 0
+
     - name: Download Cloudberry RPM build artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/download-artifact@v4
       with:
         name: apache-cloudberry-db-incubating-rpm-build-artifacts
@@ -470,6 +491,7 @@ jobs:
         merge-multiple: false
 
     - name: Setup Apache Cloudberry build environment
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
         if ! su - gpadmin -c "/tmp/init_system.sh"; then
@@ -500,6 +522,7 @@ jobs:
         echo "SRC_DIR=${GITHUB_WORKSPACE}" | tee -a $GITHUB_ENV
 
     - name: Verify RPM artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       id: verify-artifacts
       run: |
         set -eo pipefail
@@ -548,7 +571,7 @@ jobs:
         } 2>&1 | tee -a install-logs/details/rpm-verification.log
 
     - name: Install Cloudberry RPM
-      if: success()
+      if: success() && needs.check-skip.outputs.should_skip != 'true'
       env:
         RPM_FILE: ${{ steps.verify-artifacts.outputs.rpm_file }}
         RPM_VERSION: ${{ steps.verify-artifacts.outputs.version }}
