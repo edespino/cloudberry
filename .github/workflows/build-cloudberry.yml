@@ -693,7 +693,6 @@ jobs:
         fi
 
     - name: Setup Apache Cloudberry build environment
-      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
         if ! su - gpadmin -c "/tmp/init_system.sh"; then
