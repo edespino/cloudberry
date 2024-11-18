@@ -609,8 +609,8 @@ jobs:
           rpm -ql apache-cloudberry-db-incubating
         } 2>&1 | tee -a install-logs/details/rpm-installation.log
 
-    - name: Upload test logs
-      if: always()
+    - name: Upload test stub logs
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: install-logs-${{ needs.build.outputs.build_timestamp }}
