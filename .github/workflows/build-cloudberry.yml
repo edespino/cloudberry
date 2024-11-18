@@ -434,7 +434,7 @@ jobs:
         }
 
     - name: Upload build logs
-      if: always()
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: build-logs-${{ env.BUILD_TIMESTAMP }}
@@ -443,6 +443,7 @@ jobs:
         retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
     - name: Upload Cloudberry RPM build artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: apache-cloudberry-db-incubating-rpm-build-artifacts
@@ -452,6 +453,7 @@ jobs:
           *.rpm
 
     - name: Upload Cloudberry source build artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: apache-cloudberry-db-incubating-source-build-artifacts
