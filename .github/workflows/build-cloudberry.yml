@@ -140,6 +140,8 @@ permissions:
   actions: write
 
 env:
+  DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   LOG_RETENTION_DAYS: 7
 
 jobs:
@@ -186,8 +188,8 @@ jobs:
     container:
       image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ env.DOCKERHUB_USER }}
+        password: ${{ env.DOCKERHUB_TOKEN }}
       options: >-
         --user root
         -h cdw
@@ -453,8 +455,8 @@ jobs:
     container:
       image: apache/incubator-cloudberry:cbdb-test-rocky9-latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ env.DOCKERHUB_USER }}
+        password: ${{ env.DOCKERHUB_TOKEN }}
       options: >-
         --user root
         -h cdw
@@ -594,8 +596,6 @@ jobs:
     - name: Generate Install Test Job Summary End
       if: always()
       shell: bash {0}
-      env:
-        LOG_RETENTION_DAYS: 7
       run: |
         {
           echo "# Installed Package Summary"
@@ -632,8 +632,8 @@ jobs:
     container:
       image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ env.DOCKERHUB_USER }}
+        password: ${{ env.DOCKERHUB_TOKEN }}
       options: >-
         --user root
         -h cdw
@@ -928,8 +928,6 @@ jobs:
     - name: "Generate Test Job Summary End: ${{ matrix.test }}"
       if: always()
       shell: bash {0}
-      env:
-        LOG_RETENTION_DAYS: 7
       run: |
         {
           echo "## Test Results"
