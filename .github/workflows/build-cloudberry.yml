@@ -608,7 +608,6 @@ jobs:
   test:
     name: ${{ matrix.test }}
     needs: [check-skip, build]
-    if: needs.check-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -639,11 +638,20 @@ jobs:
         -h cdw
 
     steps:
+
+    - name: Skip Check
+      if: needs.check-skip.outputs.should_skip == 'true'
+      run: |
+        echo "Test ${{ matrix.test }} skipped via CI skip flag" >> $GITHUB_STEP_SUMMARY
+        exit 0
+
     - name: Use timestamp from previous job
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         echo "Timestamp from output: ${{ needs.build.outputs.build_timestamp }}"
 
     - name: Checkout build scripts repository
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/checkout@v4
       with:
         repository: edespino/cloudberry-devops-release
@@ -651,6 +659,7 @@ jobs:
         ref: build_automation
 
     - name: Move cloudberry-devops-release directory
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
         if ! mv ${GITHUB_WORKSPACE}/cloudberry-devops-release ${GITHUB_WORKSPACE}/..; then
@@ -659,6 +668,7 @@ jobs:
         fi
 
     - name: Setup Apache Cloudberry build environment
+      if: needs.check-skip.outputs.should_skip != 'true'
       run: |
         set -eo pipefail
         if ! su - gpadmin -c "/tmp/init_system.sh"; then
@@ -695,10 +705,17 @@ jobs:
           echo "# Test Job Summary: ${{ matrix.test }}" >> $GITHUB_STEP_SUMMARY
           echo "## Environment" >> $GITHUB_STEP_SUMMARY
           echo "- Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "- OS Version: $(cat /etc/redhat-release)" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.check-skip.outputs.should_skip }}" == "true" ]]; then
+            echo "## Skip Status" >> $GITHUB_STEP_SUMMARY
+            echo "✓ Test execution skipped via CI skip flag" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- OS Version: $(cat /etc/redhat-release)" >> $GITHUB_STEP_SUMMARY
+          fi
         }
 
     - name: Download Cloudberry RPM build artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/download-artifact@v4
       with:
         name: apache-cloudberry-db-incubating-rpm-build-artifacts
@@ -706,6 +723,7 @@ jobs:
         merge-multiple: false
 
     - name: Download Cloudberry Source build artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       uses: actions/download-artifact@v4
       with:
         name: apache-cloudberry-db-incubating-source-build-artifacts
@@ -713,6 +731,7 @@ jobs:
         merge-multiple: false
 
     - name: Verify downloaded artifacts
+      if: needs.check-skip.outputs.should_skip != 'true'
       id: verify-artifacts
       run: |
         set -eo pipefail
@@ -781,7 +800,7 @@ jobs:
         } 2>&1 | tee -a build-logs/details/rpm-verification.log
 
     - name: Install Cloudberry RPM
-      if: success()
+      if: success() && needs.check-skip.outputs.should_skip != 'true'
       env:
         RPM_FILE: ${{ steps.verify-artifacts.outputs.rpm_file }}
         RPM_VERSION: ${{ steps.verify-artifacts.outputs.version }}
@@ -816,7 +835,7 @@ jobs:
         } 2>&1 | tee -a build-logs/details/rpm-installation.log
 
     - name: Extract source tarball
-      if: success()
+      if: success() && needs.check-skip.outputs.should_skip != 'true'
       env:
         SRC_TARBALL_FILE: ${{ steps.verify-artifacts.outputs.src_tarball_file }}
         SRC_DIR: ${{ github.workspace }}
@@ -841,7 +860,7 @@ jobs:
         } 2>&1 | tee -a build-logs/details/source-extraction.log
 
     - name: Create Apache Cloudberry demo cluster
-      if: success()
+      if: success() && needs.check-skip.outputs.should_skip != 'true'
       env:
         SRC_DIR: ${{ github.workspace }}
       run: |
@@ -856,7 +875,7 @@ jobs:
         } 2>&1 | tee -a build-logs/details/create-cloudberry-demo-cluster.log
 
     - name: "Run Tests: ${{ matrix.test }}"
-      if: success()
+      if: success() && needs.check-skip.outputs.should_skip != 'true'
       env:
         SRC_DIR: ${{ github.workspace }}
       run: |
@@ -892,6 +911,16 @@ jobs:
       run: |
         set -o pipefail
         {
+          if [[ "${{ needs.check-skip.outputs.should_skip }}" == "true" ]]; then
+            echo "Tests skipped - setting default values"
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "total_tests=0" >> $GITHUB_OUTPUT
+            echo "failed_tests=0" >> $GITHUB_OUTPUT
+            echo "passed_tests=0" >> $GITHUB_OUTPUT
+            echo "Skip status recorded" | tee -a build-logs/details/parse-test-results-${{ matrix.test }}.log
+            exit 0
+          fi
+
           chmod +x ${SRC_DIR}/../cloudberry-devops-release/build_automation/cloudberry/scripts/parse-test-results.sh
 
           MAKE_NAME='${{ matrix.test }}' \
@@ -930,6 +959,12 @@ jobs:
       shell: bash {0}
       run: |
         {
+          if [[ "${{ needs.check-skip.outputs.should_skip }}" == "true" ]]; then
+            echo "## Test Results - SKIPPED"
+            echo "- End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            exit 0
+          fi
+
           echo "## Test Results"
           echo "- End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
