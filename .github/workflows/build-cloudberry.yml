@@ -220,7 +220,6 @@ jobs:
       with:
         repository: apache/cloudberry-devops-release
         path: cloudberry-devops-release
-        ref: main
 
     - name: Move cloudberry-devops-release directory
       if: needs.check-skip.outputs.should_skip != 'true'
