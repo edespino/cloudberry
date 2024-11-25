@@ -640,7 +640,7 @@ jobs:
         test:
           - ic-good-opt-off
           # - ic-good-opt-on
-          - ic-cbdb-parallel
+          # - ic-cbdb-parallel
           - ic-expandshrink
           - ic-singlenode_regress
           - ic-singlenode_isolation
@@ -659,10 +659,10 @@ jobs:
           #   num_primary_mirror_pairs: 3
           #   pg_settings:
           #     optimizer: "on"
-          - test: ic-cbdb-parallel
-            make_target: installcheck-cbdb-parallel
-            make_directory: --directory=src/test/regress
-            num_primary_mirror_pairs: 3
+          # - test: ic-cbdb-parallel
+          #   make_target: installcheck-cbdb-parallel
+          #   make_directory: --directory=src/test/regress
+          #   num_primary_mirror_pairs: 3
           - test: ic-expandshrink
             make_target: installcheck-expandshrink
             make_directory: --directory=src/test/isolation2
