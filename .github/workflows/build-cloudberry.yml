@@ -135,29 +135,32 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           PR_TITLE: ${{ github.event.pull_request.title || '' }}
           PR_BODY: ${{ github.event.pull_request.body || '' }}
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message || '' }}
         run: |
-          # Get the message to check based on event type
-          MESSAGE=""
+          # Default to not skipping
+          echo "should_skip=false" >> "$GITHUB_OUTPUT"
+
+          # Apply skip logic only for pull_request events
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            MESSAGE="$PR_TITLE\n$PR_BODY"
-          else
-            MESSAGE="$COMMIT_MESSAGE"
-          fi
+            # Combine PR title and body for skip check
+            MESSAGE="${PR_TITLE}\n${PR_BODY}"
 
-          echo "Checking message: $MESSAGE"
+            # Escape special characters using printf %s
+            ESCAPED_MESSAGE=$(printf "%s" "$MESSAGE")
 
-          # Check for skip patterns
-          if echo -e "$MESSAGE" | grep -qEi '\[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\]'; then
-            echo "should_skip=true" >> "$GITHUB_OUTPUT"
+            echo "Checking PR title and body (escaped): $ESCAPED_MESSAGE"
+
+            # Check for skip patterns
+            if echo -e "$ESCAPED_MESSAGE" | grep -qEi '\[skip[ -]ci\]|\[ci[ -]skip\]|\[no[ -]ci\]'; then
+              echo "should_skip=true" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "should_skip=false" >> "$GITHUB_OUTPUT"
+            echo "Skip logic is not applied for $EVENT_NAME events."
           fi
 
       - name: Report Skip Status
         if: steps.skip-check.outputs.should_skip == 'true'
         run: |
-          echo "CI Skip flag detected - skipping all checks"
+          echo "CI Skip flag detected in PR - skipping all checks."
           exit 0
 
   ## ======================================================================
