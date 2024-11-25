@@ -200,7 +200,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: edespino/cloudberry
-          ref: remove_dockerhub_secret_use
+          ref: more-schedules
           fetch-depth: 1
 
       - name: Checkout CI Build/Test Scripts (apache/cloudberry-devops-release)
@@ -700,7 +700,7 @@ jobs:
         with:
           repository: apache/cloudberry-devops-release
           path: cloudberry-devops-release
-          ref: debug-config
+          ref: main
 
       - name: Move cloudberry-devops-release directory
         if: needs.check-skip.outputs.should_skip != 'true'
