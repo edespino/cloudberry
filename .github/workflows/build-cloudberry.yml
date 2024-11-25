@@ -1088,6 +1088,18 @@ jobs:
             fi
             } 2>&1 | tee -a build-logs/details/make-${{ matrix.test }}.log
 
+      - name: Check and Display Regression Diffs
+        if: always()
+        run: |
+          # Search for regression.diffs recursively
+          found_file=$(find . -type f -name "regression.diffs" | head -n 1)
+          if [[ -n "$found_file" ]]; then
+            echo "Found regression.diffs at: $found_file"
+            cat "$found_file"
+          else
+            echo "No regression.diffs file found in the hierarchy."
+          fi
+
       - name: Parse Test Results
         id: test-results
         if: always()
