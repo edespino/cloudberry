@@ -641,11 +641,11 @@ jobs:
           - ic-good-opt-off
           # - ic-good-opt-on
           - ic-cbdb-parallel
-          - ic-expandshrink-test
+          - ic-expandshrink
           - ic-singlenode_regress
           - ic-singlenode_isolation
           - ic-singlenode_isolation2
-          - ic-resgroup-v2-test
+          - ic-resgroup-v2
         include:
           - test: ic-good-opt-off
             make_target: installcheck-good
@@ -663,7 +663,7 @@ jobs:
             make_target: installcheck-cbdb-parallel
             make_directory: --directory=src/test/regress
             num_primary_mirror_pairs: 3
-          - test: ic-expandshrink-test
+          - test: ic-expandshrink
             make_target: installcheck-expandshrink
             make_directory: --directory=src/test/isolation2
             num_primary_mirror_pairs: 3
@@ -679,7 +679,7 @@ jobs:
             make_target: installcheck-singlenode
             make_directory: --directory=src/test/singlenode_isolation2
             num_primary_mirror_pairs: 0
-          - test: ic-resgroup-v2-test
+          - test: ic-resgroup-v2
             make_target: installcheck-resgroup-v2
             make_directory: --directory=src/test/isolation2
             num_primary_mirror_pairs: 3
