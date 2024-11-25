@@ -643,6 +643,7 @@ jobs:
       options: >-
         --user root
         -h cdw
+        --shm-size=2gb
 
     steps:
 
