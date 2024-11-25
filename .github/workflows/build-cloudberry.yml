@@ -22,8 +22,9 @@
 # Description:
 #
 #   This workflow builds, tests, and packages Apache Cloudberry on
-#   Rocky Linux 9.  It ensures artifact integrity, performs install
-#   tests, and validates key operations.
+#   Rocky Linux 9. It ensures artifact integrity, performs installation
+#   tests, validates key operations, and provides detailed test reports,
+#   including handling for ignored test cases.
 #
 # Workflow Overview:
 # 1. **Check Skip**:
@@ -52,7 +53,10 @@
 # 4. **Test Job (Matrix)**:
 #    - Executes a test matrix to validate different scenarios.
 #    - Creates a demo cluster and runs installcheck tests.
-#    - Parses and reports test results.
+#    - Parses and reports test results, including failed and ignored tests.
+#    - **Key Features**:
+#      - Regression diffs are displayed if found, aiding quick debugging.
+#      - Both failed and ignored test names are logged and reported.
 #    - **Key Artifacts**: Test logs, regression files, test summaries.
 #
 #    **Matrix Tests**:
@@ -89,12 +93,13 @@
 # - RPM Package          (retention: ${{ env.LOG_RETENTION_DAYS }} days).
 # - Source Tarball       (retention: ${{ env.LOG_RETENTION_DAYS }} days).
 # - Logs and Test Results (retention: ${{ env.LOG_RETENTION_DAYS }} days).
+# - Regression Diffs      (retention: ${{ env.LOG_RETENTION_DAYS }} days).
 #
 # Notes:
 # - Supports concurrent job execution.
-# - Provides detailed logs and error handling.
-# - Artifacts are maintained for downstream workflows.
 # - Includes robust skip logic for pull requests and pushes.
+# - Handles ignored test cases, ensuring results are comprehensive.
+# - Provides detailed logs and error handling for failed and ignored tests.
 # --------------------------------------------------------------------
 
 name: Apache Cloudberry Build
@@ -210,8 +215,8 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: apache/cloudberry-devops-release
-          ref: main
+          repository: edespino/cloudberry-devops-release
+          ref: handle_ignored_tests
           path: cloudberry-devops-release
 
       - name: Move cloudberry-devops-release directory
@@ -449,6 +454,10 @@ jobs:
           path: |
             apache-cloudberry-incubating-src.tgz
 
+  ## ======================================================================
+  ## Job: rpm-install-test
+  ## ======================================================================
+
   rpm-install-test:
     name: RPM Install Test Apache Cloudberry
     needs: [check-skip, build]
@@ -617,7 +626,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY" || true
 
   ## ======================================================================
-  ## Test Job
+  ## Job: test
   ## ======================================================================
 
   test:
@@ -701,9 +710,9 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: apache/cloudberry-devops-release
+          repository: edespino/cloudberry-devops-release
+          ref: handle_ignored_tests
           path: cloudberry-devops-release
-          ref: main
 
       - name: Move cloudberry-devops-release directory
         if: needs.check-skip.outputs.should_skip != 'true'
@@ -715,7 +724,6 @@ jobs:
           fi
 
       - name: Cloudberry Environment Initialization
-        if: needs.check-skip.outputs.should_skip != 'true'
         env:
           LOGS_DIR: build-logs
         run: |
@@ -748,6 +756,7 @@ jobs:
           echo "SRC_DIR=${GITHUB_WORKSPACE}" | tee -a "$GITHUB_ENV"
 
       - name: Setup cgroups
+        if: needs.check-skip.outputs.should_skip != 'true'
         shell: bash
         run: |
           set -uxo pipefail
@@ -1119,6 +1128,7 @@ jobs:
                 echo "total_tests=0"
                 echo "failed_tests=0"
                 echo "passed_tests=0"
+                echo "ignored_tests=0"
               } >> "$GITHUB_OUTPUT"
               echo "Skip status recorded" | tee -a build-logs/details/parse-test-results-${{ matrix.test }}.log
               exit 0
@@ -1178,6 +1188,7 @@ jobs:
             echo "| Total Tests | ${{ steps.test-results.outputs.total_tests }} |"
             echo "| Passed Tests | ${{ steps.test-results.outputs.passed_tests }} |"
             echo "| Failed Tests | ${{ steps.test-results.outputs.failed_tests }} |"
+            echo "| Ignored Tests | ${{ steps.test-results.outputs.ignored_tests }} |"
 
             # Test status with emoji based on results
             echo "### Test Status"
@@ -1198,6 +1209,19 @@ jobs:
                 done
               fi
             fi
+
+            # Add ignored tests as a separate section
+            if [[ -n "${{ steps.test-results.outputs.ignored_test_names }}" ]]; then
+              echo ""
+              echo "### Ignored Tests"
+              echo "The following tests were ignored (results not critical):"
+              echo "${{ steps.test-results.outputs.ignored_test_names }}" | tr ',' '\n' | while read -r test; do
+                if [[ -n "$test" ]]; then
+                  echo "* \`${test}\`"
+                fi
+              done
+            fi
+
           } >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Upload test logs
