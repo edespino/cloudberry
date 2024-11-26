@@ -224,11 +224,11 @@ jobs:
           echo "timestamp=$timestamp" | tee -a "$GITHUB_OUTPUT"  # Use GITHUB_OUTPUT for job outputs
           echo "BUILD_TIMESTAMP=$timestamp" | tee -a "$GITHUB_ENV" # Also set as environment variable
 
-      - name: Checkout Apache Cloudberry (apache/cloudberry)
+      - name: Checkout Apache Cloudberry (edespino/cloudberry)
         if: needs.check-skip.outputs.should_skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: apache/cloudberry
+          repository: edespino/cloudberry
           fetch-depth: 1
 
       - name: Checkout CI Build/Test Scripts (edespino/cloudberry-devops-release)
