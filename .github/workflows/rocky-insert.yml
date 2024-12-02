@@ -1,0 +1,145 @@
+name: Rocky Linux 9 insert
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Note: Step details, logs, and artifacts require users to be logged into GitHub
+# even for public repositories. This is a GitHub security feature and cannot
+# be overridden by permissions.
+
+permissions:
+  # READ permissions allow viewing repository contents
+  contents: read      # Required for checking out code and reading repository files
+
+  # READ permissions for packages (Container registry, etc)
+  packages: read      # Allows reading from GitHub package registry
+
+  # WRITE permissions for actions includes read access to:
+  # - Workflow runs
+  # - Artifacts (requires GitHub login)
+  # - Logs (requires GitHub login)
+  actions: write
+
+  # READ permissions for checks API:
+  # - Step details visibility (requires GitHub login)
+  # - Check run status and details
+  checks: read
+
+  # READ permissions for pull request metadata:
+  # - PR status
+  # - Associated checks
+  # - Review states
+  pull-requests: read
+
+env:
+  LOG_RETENTION_DAYS: 7
+
+jobs:
+
+  ## ======================================================================
+  ## Job: record-workflow-start
+  ## ======================================================================
+
+  record-workflow-start:
+    runs-on: ubuntu-latest
+    container:
+      image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
+      options: >-
+        --user root
+        -h cdw
+    outputs:
+      workflow_id: ${{ steps.record-start.outputs.workflow_id }}
+    steps:
+      - name: Record workflow start
+        id: record-start
+        shell: bash {0}
+        env:
+          # Database connection details stored as secrets for security
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+        run: |
+
+          dnf install -d0 -y postgresql
+
+          # Determine the type of trigger that initiated the workflow
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TRIGGER="pull_request"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TRIGGER="manual"
+          else
+            TRIGGER="push"
+          fi
+          echo "INFO: Trigger type detected as $TRIGGER"
+
+          # Insert workflow record into the database and retrieve the generated workflow ID
+          WORKFLOW_ID=$(psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+          INSERT INTO workflow_runs
+            (github_run_id, github_run_attempt, trigger_type, branch_name, commit_sha, pr_number, workflow_status, started_at)
+          VALUES
+            (${{ github.run_id }},                     -- Unique ID for this GitHub Actions workflow run
+             ${{ github.run_attempt }},                -- Number of attempts for this workflow run
+             '$TRIGGER',                               -- Trigger type (e.g., push, pull_request)
+             '${{ github.ref_name }}',                 -- Branch name or tag associated with the run
+             '${{ github.sha }}',                      -- Commit SHA for the workflow run
+             ${{ github.event.pull_request.number || 'NULL' }},  -- PR number or NULL if not applicable
+             'in_progress',                            -- Initial workflow status
+             NOW())                                    -- Timestamp when the workflow started
+          RETURNING workflow_run_id;                   -- Retrieve the primary key of the inserted row
+          EOF
+          )
+
+          # Validate the retrieved workflow ID
+          if [[ -z "$WORKFLOW_ID" ]]; then
+            echo "ERROR: Failed to retrieve workflow_id from database."
+            exit 1
+          else
+            echo "INFO: Successfully retrieved workflow_id: $WORKFLOW_ID"
+          fi
+
+          # Export workflow_id for use in downstream jobs
+          echo "workflow_id=${WORKFLOW_ID}" >> "$GITHUB_OUTPUT"
+
+
+  ## ======================================================================
+  ## Job: record-workflow-end
+  ## ======================================================================
+
+  record-workflow-end:
+    needs:
+      - record-workflow-start
+    runs-on: ubuntu-latest
+    container:
+      image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
+      options: >-
+        --user root
+        -h cdw
+    steps:
+      - name: Record workflow completion
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+          WORKFLOW_ID: ${{ needs.record-workflow-start.outputs.workflow_id }}
+        shell: bash {0}
+        run: |
+          set -e  # Exit on error
+
+          dnf install -d0 -y postgresql
+
+          # Update workflow record with completion time and status
+          psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+          UPDATE workflow_runs
+          SET
+            completed_at = NOW(),
+            workflow_status = 'completed'
+          WHERE workflow_run_id = $WORKFLOW_ID;
+          EOF

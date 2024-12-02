@@ -95,10 +95,6 @@
 name: Apache Cloudberry Build
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -139,10 +135,80 @@ env:
 jobs:
 
   ## ======================================================================
+  ## Job: record-workflow-start
+  ## ======================================================================
+
+  record-workflow-start:
+
+    # Job Description:
+    # This job logs the start of a workflow run by recording key
+    # metadata (e.g., run ID, branch name, trigger type) in a
+    # PostgreSQL database. The job also captures a unique workflow ID
+    # from the database, which is passed to downstream jobs for
+    # tracking purposes. This ensures robust monitoring and
+    # traceability of workflows.
+
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:15
+    outputs:
+      workflow_id: ${{ steps.record-start.outputs.workflow_id }}
+    steps:
+      - name: Record workflow start
+        id: record-start
+        shell: bash {0}
+        env:
+          # Database connection details stored as secrets for security
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+        run: |
+          # Determine the type of trigger that initiated the workflow
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TRIGGER="pull_request"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TRIGGER="manual"
+          else
+            TRIGGER="push"
+          fi
+          echo "INFO: Trigger type detected as $TRIGGER"
+
+          # Insert workflow record into the database and retrieve the generated workflow ID
+          WORKFLOW_ID=$(psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+          INSERT INTO workflow_runs
+            (github_run_id, github_run_attempt, trigger_type, branch_name, commit_sha, pr_number, workflow_status, started_at)
+          VALUES
+            (${{ github.run_id }},                     -- Unique ID for this GitHub Actions workflow run
+             ${{ github.run_attempt }},                -- Number of attempts for this workflow run
+             '$TRIGGER',                               -- Trigger type (e.g., push, pull_request)
+             '${{ github.ref_name }}',                 -- Branch name or tag associated with the run
+             '${{ github.sha }}',                      -- Commit SHA for the workflow run
+             ${{ github.event.pull_request.number || 'NULL' }},  -- PR number or NULL if not applicable
+             'in_progress',                            -- Initial workflow status
+             NOW())                                    -- Timestamp when the workflow started
+          RETURNING workflow_run_id;                   -- Retrieve the primary key of the inserted row
+          EOF
+          )
+
+          # Validate the retrieved workflow ID
+          if [[ -z "$WORKFLOW_ID" ]]; then
+            echo "ERROR: Failed to retrieve workflow_id from database."
+            exit 1
+          else
+            echo "INFO: Successfully retrieved workflow_id: $WORKFLOW_ID"
+          fi
+
+          # Export workflow_id for use in downstream jobs
+          echo "workflow_id=${WORKFLOW_ID}" >> "$GITHUB_OUTPUT"
+
+  ## ======================================================================
   ## Job: check-skip
   ## ======================================================================
 
   check-skip:
+    needs: record-workflow-start
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip-check.outputs.should_skip }}
@@ -189,11 +255,31 @@ jobs:
     name: Build Apache Cloudberry
     env:
       JOB_TYPE: build
-    needs: check-skip
+    needs:
+      - record-workflow-start
+      - check-skip
     runs-on: ubuntu-latest
     timeout-minutes: 120
     outputs:
+      os_name: ${{ steps.capture-build-info.outputs.os_name }}
+      os_version: ${{ steps.capture-build-info.outputs.os_version }}
+      kernel_version: ${{ steps.capture-build-info.outputs.kernel_version }}
+      cpu_count: ${{ steps.capture-build-info.outputs.cpu_count }}
+      cpu_model: ${{ steps.capture-build-info.outputs.cpu_model }}
+      total_memory_mb: ${{ steps.capture-build-info.outputs.total_memory_mb }}
+      shared_memory: ${{ steps.capture-build-info.outputs.shared_memory }}
+      disk_total: ${{ steps.capture-build-info.outputs.disk_total }}
+      disk_used: ${{ steps.capture-build-info.outputs.disk_used }}
+      disk_available: ${{ steps.capture-build-info.outputs.disk_available }}
+      container_id: ${{ steps.capture-build-info.outputs.container_id }}
+      container_image: ${{ steps.capture-build-info.outputs.container_image }}
+      network_info: ${{ steps.capture-build-info.outputs.network_info }}
+      process_count: ${{ steps.capture-build-info.outputs.process_count }}
       build_timestamp: ${{ steps.set_timestamp.outputs.timestamp }}
+
+      pg_config_configure: ${{ steps.build-config.outputs.pg_config_configure }}
+      postgres_version: ${{ steps.build-config.outputs.postgres_version }}
+      cloudberry_version: ${{ steps.build-config.outputs.cloudberry_version }}
 
     container:
       image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
@@ -207,6 +293,63 @@ jobs:
         run: |
           echo "Build skipped via CI skip flag" >> "$GITHUB_STEP_SUMMARY"
           exit 0
+
+      - name: Capture Build OS and System Information
+        if: needs.check-skip.outputs.should_skip != 'true'
+        id: capture-build-info
+        env:
+          CONTAINER_IMAGE: apache/incubator-cloudberry:cbdb-build-rocky9-latest
+        shell: bash {0}
+        run: |
+          set -e  # Exit on error
+
+          df -kh /
+          rm -rf /__t/*
+          df -kh /
+
+          # OS Information
+          OS_NAME=$(grep ^NAME= /etc/os-release | cut -d'=' -f2 | tr -d '"')
+          OS_VERSION=$(grep ^VERSION_ID= /etc/os-release | cut -d'=' -f2 | tr -d '"')
+          KERNEL_VERSION=$(uname -r)
+
+          # CPU Information
+          CPU_COUNT=$(nproc)
+          CPU_MODEL=$(lscpu | grep "Model name" | awk -F: '{print $2}' | xargs)
+
+          # Memory Information
+          TOTAL_MEMORY=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+          TOTAL_MEMORY_MB=$((TOTAL_MEMORY / 1024))
+          SHARED_MEMORY=$(df -h /dev/shm | awk 'NR==2 {print $2}')
+
+          # Disk Space on '/'
+          DISK_TOTAL=$(df -h / | awk 'NR==2 {print $2}')
+          DISK_USED=$(df -h / | awk 'NR==2 {print $3}')
+          DISK_AVAILABLE=$(df -h / | awk 'NR==2 {print $4}')
+
+          # Container-Specific Information
+          CONTAINER_ID=$(hostname)
+
+          # Sanitize Network Information
+          NETWORK_INFO=$(ip -brief addr | awk '{print $1 "=" $3}' | sed 's/@/_/g')
+          PROCESS_COUNT=$(ps -e | wc -l)
+
+          # Write outputs to $GITHUB_OUTPUT
+          {
+            echo "os_name=${OS_NAME}"
+            echo "os_version=${OS_VERSION}"
+            echo "kernel_version=${KERNEL_VERSION}"
+            echo "cpu_count=${CPU_COUNT}"
+            echo "cpu_model=${CPU_MODEL}"
+            echo "total_memory_mb=${TOTAL_MEMORY_MB}"
+            echo "shared_memory=${SHARED_MEMORY}"
+            echo "disk_total=${DISK_TOTAL}"
+            echo "disk_used=${DISK_USED}"
+            echo "disk_available=${DISK_AVAILABLE}"
+            echo "container_id=${CONTAINER_ID}"
+            echo "container_image=${CONTAINER_IMAGE}"
+            echo "network_info=${NETWORK_INFO}"
+            echo "process_count=${PROCESS_COUNT}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set build timestamp
         if: needs.check-skip.outputs.should_skip != 'true'
@@ -256,10 +399,6 @@ jobs:
           chown -R gpadmin:gpadmin .
           chmod -R 755 .
           chmod 777 "${LOGS_DIR}"
-
-          df -kh /
-          rm -rf /__t/*
-          df -kh /
 
           df -h | tee -a "${LOGS_DIR}/details/disk-usage.log"
           free -h | tee -a "${LOGS_DIR}/details/memory-usage.log"
@@ -438,6 +577,23 @@ jobs:
             echo "- End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Capture Build Config
+        if: needs.check-skip.outputs.should_skip != 'true'
+        id: build-config
+        shell: bash {0}
+        run: |
+
+          PG_CONFIG_CONFIGURE="$(/usr/local/cloudberry-db/bin/pg_config --configure | sed "s/'//g")"
+          POSTGRES_VERSION="$(/usr/local/cloudberry-db/bin/postgres --version)"
+          CLOUDBERRY_VERSION="$(/usr/local/cloudberry-db/bin/postgres --gp-version)"
+
+          # Write outputs to $GITHUB_OUTPUT
+          {
+            echo "pg_config_configure=${PG_CONFIG_CONFIGURE}"
+            echo "postgres_version=${POSTGRES_VERSION}"
+            echo "cloudberry_version=${CLOUDBERRY_VERSION}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Upload build logs
         if: needs.check-skip.outputs.should_skip != 'true'
         uses: actions/upload-artifact@v4
@@ -468,12 +624,126 @@ jobs:
             apache-cloudberry-incubating-src.tgz
 
   ## ======================================================================
+  ## Job: record-build-environment
+  ## ======================================================================
+
+  record-build-environment:
+    name: Record Build Environment
+    needs:
+      - record-workflow-start
+      - check-skip
+      - build
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:15
+    steps:
+      - name: Insert Job Environment into Database
+        shell: bash {0}
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+        run: |
+          set -e  # Exit on error
+
+          # Insert job environment record
+          JOB_ENV_ID=$(psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+          INSERT INTO job_environments (
+            workflow_run_id, job_name, os_name, os_version, kernel_version,
+            cpu_count, cpu_model, total_memory_mb, shared_memory,
+            disk_total, disk_used, disk_available, network_info,
+            process_count, container_id, container_image
+          ) VALUES (
+            (SELECT workflow_run_id FROM workflow_runs WHERE github_run_id = '${{ github.run_id }}'),
+            'Build Apache Cloudberry',
+            '${{ needs.build.outputs.os_name }}',
+            '${{ needs.build.outputs.os_version }}',
+            '${{ needs.build.outputs.kernel_version }}',
+             ${{ needs.build.outputs.cpu_count }},
+            '${{ needs.build.outputs.cpu_model }}',
+             ${{ needs.build.outputs.total_memory_mb }},
+            '${{ needs.build.outputs.shared_memory }}',
+            '${{ needs.build.outputs.disk_total }}',
+            '${{ needs.build.outputs.disk_used }}',
+            '${{ needs.build.outputs.disk_available }}',
+            '${{ needs.build.outputs.network_info }}',
+             ${{ needs.build.outputs.process_count }},
+            '${{ needs.build.outputs.container_id }}',
+            '${{ needs.build.outputs.container_image }}')
+          RETURNING job_env_id;
+          EOF
+          )
+
+          # Verify we got a job environment ID
+          if [[ -z "$JOB_ENV_ID" ]]; then
+            echo "Error: Failed to insert job environment"
+            exit 1
+          fi
+
+          # Log the inserted job environment ID
+          echo "Inserted Job Environment ID: $JOB_ENV_ID"
+
+  ## ======================================================================
+  ## Job: record-build-run
+  ## ======================================================================
+
+  record-build-run:
+    name: Record Build Run
+    needs:
+      - record-workflow-start
+      - check-skip
+      - build
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:15
+    steps:
+      - name: Insert Build Run into Database
+        shell: bash {0}
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+        run: |
+          set -e  # Exit on error
+
+          # Insert job environment record
+          BUILD_RUN_ID=$(psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+          INSERT INTO build_runs (
+            workflow_run_id, pg_config_configure, postgres_version, cloudberry_version
+          ) VALUES (
+            (SELECT workflow_run_id FROM workflow_runs WHERE github_run_id = '${{ github.run_id }}'),
+            '${{ needs.build.outputs.pg_config_configure }}',
+            '${{ needs.build.outputs.postgres_version }}',
+            '${{ needs.build.outputs.cloudberry_version }}')
+          RETURNING build_run_id;
+          EOF
+          )
+
+          # Verify we got a Build Run ID
+          if [[ -z "$BUILD_RUN_ID" ]]; then
+            echo "Error: Failed to insert job environment"
+            exit 1
+          fi
+
+          # Log the inserted Build Run ID
+          echo "Inserted Job Environment ID: $BUILD_RUN_ID"
+
+  ## ======================================================================
   ## Job: rpm-install-test
   ## ======================================================================
 
   rpm-install-test:
     name: RPM Install Test Apache Cloudberry
-    needs: [check-skip, build]
+    needs:
+      - record-workflow-start
+      - check-skip
+      - build
+      - record-build-environment
+      - record-build-run
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -513,10 +783,6 @@ jobs:
           chown -R gpadmin:gpadmin .
           chmod -R 755 .
           chmod 777 "${LOGS_DIR}"
-
-          df -kh /
-          rm -rf /__t/*
-          df -kh /
 
           df -h | tee -a "${LOGS_DIR}/details/disk-usage.log"
           free -h | tee -a "${LOGS_DIR}/details/memory-usage.log"
@@ -649,7 +915,12 @@ jobs:
 
   test:
     name: ${{ matrix.test }}
-    needs: [check-skip, build]
+    needs:
+      - check-skip
+      - record-workflow-start
+      - build
+      - record-build-environment
+      - record-build-run
     runs-on: ubuntu-latest
     timeout-minutes: 120
     # actionlint-allow matrix[*].pg_settings
@@ -788,10 +1059,6 @@ jobs:
           chown -R gpadmin:gpadmin .
           chmod -R 755 .
           chmod 777 "${LOGS_DIR}"
-
-          df -kh /
-          rm -rf /__t/*
-          df -kh /
 
           df -h | tee -a "${LOGS_DIR}/details/disk-usage.log"
           free -h | tee -a "${LOGS_DIR}/details/memory-usage.log"
@@ -1236,11 +1503,11 @@ jobs:
               echo "::error::Log file not found: $config_log"
               {
                 echo "MAKE_COMMAND=make -C $dir $target"
-                echo "status=missing_log"
-                echo "total_tests=0"
-                echo "failed_tests=0"
-                echo "passed_tests=0"
-                echo "ignored_tests=0"
+                echo "STATUS=missing_log"
+                echo "TOTAL_TESTS=0"
+                echo "FAILED_TESTS=0"
+                echo "PASSED_TESTS=0"
+                echo "IGNORED_TESTS=0"
               } > "test_results.$i.txt"
               overall_status=1
               continue
@@ -1252,19 +1519,25 @@ jobs:
             "${SRC_DIR}"/../cloudberry-devops-release/build_automation/cloudberry/scripts/parse-test-results.sh "$config_log"
             status_code=$?
 
+            {
+                echo "SUITE_NAME=${{ matrix.test }}"
+                echo "DIR=${dir}"
+                echo "TARGET=${target}"
+            } >> test_results.txt
+
             # Process return code
             case $status_code in
               0)  # All tests passed
                   echo "All tests passed successfully"
                   if [ -f test_results.txt ]; then
-                    (echo "MAKE_COMMAND=\"make -C $dir $target\""; cat test_results.txt) | tee "test_results.$i.txt"
+                    (echo "MAKE_COMMAND=\"make -C $dir $target\""; cat test_results.txt) > "test_results.${{ matrix.test }}.$i.txt"
                     rm test_results.txt
                   fi
                   ;;
               1)  # Tests failed but parsed successfully
                   echo "Test failures detected but properly parsed"
                   if [ -f test_results.txt ]; then
-                    (echo "MAKE_COMMAND=\"make -C $dir $target\""; cat test_results.txt) | tee "test_results.$i.txt"
+                    (echo "MAKE_COMMAND=\"make -C $dir $target\""; cat test_results.txt) > "test_results.${{ matrix.test }}.$i.txt"
                     rm test_results.txt
                   fi
                   overall_status=1
@@ -1273,25 +1546,27 @@ jobs:
                   echo "::warning::Could not parse test results properly for configuration $((i+1))"
                   {
                     echo "MAKE_COMMAND=\"make -C $dir $target\""
-                    echo "status=parse_error"
-                    echo "total_tests=0"
-                    echo "failed_tests=0"
-                    echo "passed_tests=0"
-                    echo "ignored_tests=0"
-                  } | tee "test_results.$i.txt"
+                    echo "STATUS=parse_error"
+                    echo "TOTAL_TESTS=0"
+                    echo "FAILED_TESTS=0"
+                    echo "PASSED_TESTS=0"
+                    echo "IGNORED_TESTS=0"
+                  } | tee "test_results.${{ matrix.test }}.$i.txt"
                   overall_status=1
+                  rm -f test_results.txt
                   ;;
               *)  # Unexpected error
                   echo "::warning::Unexpected error during test results parsing for configuration $((i+1))"
                   {
                     echo "MAKE_COMMAND=\"make -C $dir $target\""
-                    echo "status=unknown_error"
-                    echo "total_tests=0"
-                    echo "failed_tests=0"
-                    echo "passed_tests=0"
-                    echo "ignored_tests=0"
-                  } | tee "test_results.$i.txt"
+                    echo "STATUS=unknown_error"
+                    echo "TOTAL_TESTS=0"
+                    echo "FAILED_TESTS=0"
+                    echo "PASSED_TESTS=0"
+                    echo "IGNORED_TESTS=0"
+                  } | tee "test_results.${{ matrix.test }}.$i.txt"
                   overall_status=1
+                  rm -f test_results.txt
                   ;;
             esac
 
@@ -1304,13 +1579,11 @@ jobs:
           echo "=== Results file status ==="
           echo "Generated results files:"
           for ((i=0; i<NUM_CONFIGS; i++)); do
-            if [ -f "test_results.$i.txt" ]; then
-              echo "- test_results.$i.txt exists"
-              echo "Contents:"
-              cat "test_results.$i.txt"
+            if [ -f "test_results.${{ matrix.test }}.$i.txt" ]; then
+              echo "- test_results.${{ matrix.test }}.$i.txt exists"
               echo ""
             else
-              echo "::error::Missing results file: test_results.$i.txt"
+              echo "::error::Missing results file: test_results.${{ matrix.test }}.$i.txt"
               overall_status=1
             fi
           done
@@ -1362,14 +1635,14 @@ jobs:
 
               echo "### Configuration $((i+1)): \`make -C $dir $target\`"
 
-              if [[ ! -f "test_results.$i.txt" ]]; then
+              if [[ ! -f "test_results.${{ matrix.test }}.$i.txt" ]]; then
                 echo "⚠️ No results file found for this configuration"
                 continue
               fi
 
               # Source configuration results
               # shellcheck source=/dev/null
-              . "test_results.$i.txt"
+              . "test_results.${{ matrix.test }}.$i.txt"
 
               # Rest of the code remains the same...
               # Display status with emoji
@@ -1441,6 +1714,15 @@ jobs:
             build-logs/
           retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
+      - name: Upload Test Metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-metadata-${{ matrix.test }}
+          path: |
+            test_results*.txt
+          retention-days: ${{ env.LOG_RETENTION_DAYS }}
+
       - name: Upload test regression logs
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
@@ -1460,9 +1742,20 @@ jobs:
             gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
           retention-days: ${{ env.LOG_RETENTION_DAYS }}
 
+  ## ======================================================================
+  ## Job: report
+  ## ======================================================================
+
   report:
     name: Generate Apache Cloudberry Build Report
-    needs: [check-skip, build, rpm-install-test, test]
+    needs:
+      - check-skip
+      - record-workflow-start
+      - build
+      - record-build-environment
+      - record-build-run
+      - test
+      - rpm-install-test
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -1508,3 +1801,147 @@ jobs:
           echo "Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "Build Result: ${{ needs.build.result }}"
           echo "Test Result: ${{ needs.test.result }}"
+
+  ## ======================================================================
+  ## Job: record-test-run
+  ## ======================================================================
+
+  record-test-run:
+    name: Record Test Run
+    needs:
+      - record-workflow-start
+      - check-skip
+      - build
+      - record-build-environment
+      - record-build-run
+      - test
+      - rpm-install-test
+    if: always()
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:15
+
+    steps:
+      - name: Download Test Metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ github.workspace }}
+          pattern: test-metadata*
+          merge-multiple: true
+
+      - name: Insert Build Run into Database
+        shell: bash {0}
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+        run: |
+          # Track overall success
+          insert_success=true
+
+          # Store test run IDs
+          declare -a test_run_ids=()
+
+          for test_metadata_file in ./test_results*.txt; do
+            echo "Processing $test_metadata_file"
+
+            # Source the test metadata
+            # shellcheck source=/dev/null
+            . "${test_metadata_file}"
+
+            # Attempt insert
+            if ! TEST_RUN_ID=$(psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+            INSERT INTO test_runs (
+              workflow_run_id,
+              suite_name,
+              make_directory,
+              make_target,
+              test_status,
+              total_tests,
+              passed_tests,
+              failed_tests,
+              ignored_tests,
+              failed_test_names,
+              ignored_test_names,
+              created_at
+            ) VALUES (
+              (SELECT workflow_run_id FROM workflow_runs WHERE github_run_id = '${{ github.run_id }}'),
+              '${SUITE_NAME}',
+              '${DIR}',
+              '${TARGET}',
+              '${STATUS}',
+              ${TOTAL_TESTS:-0},
+              ${PASSED_TESTS:-0},
+              ${FAILED_TESTS:-0},
+              ${IGNORED_TESTS:-0},
+              '${FAILED_TEST_NAMES:-}',
+              '${IGNORED_TEST_NAMES:-}',
+              NOW())
+            RETURNING test_run_id;
+          EOF
+            ); then
+              echo "Error: Failed to insert test run for $test_metadata_file"
+              insert_success=false
+              continue
+            fi
+
+            # Verify we got an ID
+            if [[ -z "$TEST_RUN_ID" ]]; then
+              echo "Error: No test run ID returned for $test_metadata_file"
+              insert_success=false
+              continue
+            fi
+
+            # Store successful insert
+            test_run_ids+=("$TEST_RUN_ID")
+            echo "Successfully inserted Test Run ID: $TEST_RUN_ID for $test_metadata_file"
+          done
+
+          # Report results
+          echo "Processed ${#test_run_ids[@]} test runs successfully"
+          if [[ "$insert_success" != "true" ]]; then
+            echo "Error: Some test run inserts failed"
+            exit 1
+          fi
+
+  ## ======================================================================
+  ## Job: record-workflow-end
+  ## ======================================================================
+
+  record-workflow-end:
+    needs:
+      - record-workflow-start
+      - check-skip
+      - build
+      - record-build-environment
+      - record-build-run
+      - rpm-install-test
+      - test
+      - record-test-run
+    if: always()  # Run even if previous jobs fail
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:15
+    steps:
+      - name: Record workflow completion
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGPORT: ${{ secrets.DB_PORT }}
+          PGDATABASE: cloudberry_metrics
+          PGUSER: github_actions
+          PGPASSWORD: ${{ secrets.DB_GITHUB_ACTIONS_PASSWORD }}
+          WORKFLOW_ID: ${{ needs.record-workflow-start.outputs.workflow_id }}
+        shell: bash {0}
+        run: |
+          set -e  # Exit on error
+
+          # Update workflow record with completion time and status
+          psql sslmode=require -v ON_ERROR_STOP=1 -qtAX <<EOF
+          UPDATE workflow_runs
+          SET
+            completed_at = NOW(),
+            workflow_status = 'completed'
+          WHERE workflow_run_id = $WORKFLOW_ID;
+          EOF
