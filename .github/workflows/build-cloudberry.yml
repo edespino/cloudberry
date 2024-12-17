@@ -101,6 +101,12 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate ssh support'
+        required: false
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -1190,6 +1196,32 @@ jobs:
           fi
 
           exit $overall_status
+
+      - name: Log into tmate session
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        run: |
+          # Install required packages
+          dnf install --enablerepo=epel -y -d0 tmate
+
+          # Start tmate
+          tmate -S /tmp/tmate.sock new-session -d
+          tmate -S /tmp/tmate.sock wait tmate-ready
+
+          # Display connection information
+          echo "::group::Debug Session Information"
+          echo "SSH: $(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')"
+          echo "Web URL: $(tmate -S /tmp/tmate.sock display -p '#{tmate_web}')"
+          echo "To exit debug session and continue workflow: type 'exit' in the session"
+          echo "::endgroup::"
+
+          # Keep session alive until exit or control file
+          while true; do
+            sleep 5
+            if ! tmate -S /tmp/tmate.sock has-session; then
+              echo "Debug session ended, continuing workflow..."
+              exit 0
+            fi
+          done
 
       - name: "Parse Test Results: ${{ matrix.test }}"
         id: test-results
