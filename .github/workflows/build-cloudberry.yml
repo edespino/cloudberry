@@ -107,6 +107,12 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
+    inputs:
+      test_selection:
+        description: 'Select tests to run (comma-separated). Examples: ic-good-opt-off,ic-contrib'
+        required: false
+        default: 'all'
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -190,6 +196,170 @@ jobs:
           exit 0
 
   ## ======================================================================
+  ## Job: prepare-test-matrix
+  ## ======================================================================
+
+  prepare-test-matrix:
+    runs-on: ubuntu-22.04
+    needs: [check-skip]
+    if: needs.check-skip.outputs.should_skip != 'true'
+    outputs:
+      test-matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - id: set-matrix
+        run: |
+          echo "=== Matrix Preparation Diagnostics ==="
+          echo "Event type: ${{ github.event_name }}"
+          echo "Test selection input: '${{ github.event.inputs.test_selection }}'"
+
+          # Define defaults
+          DEFAULT_NUM_PRIMARY_MIRROR_PAIRS=3
+          DEFAULT_ENABLE_CGROUPS=false
+          DEFAULT_ENABLE_CORE_CHECK=true
+          DEFAULT_PG_SETTINGS_OPTIMIZER=""
+
+          # Define base test configurations
+          ALL_TESTS='{
+            "include": [
+              {"test":"ic-good-opt-off",
+               "make_configs":["src/test/regress:installcheck-good"],
+               "pg_settings":{"optimizer":"off"}
+              },
+              {"test":"ic-good-opt-on",
+               "make_configs":["src/test/regress:installcheck-good"],
+               "pg_settings":{"optimizer":"on"}
+              },
+              {"test":"ic-expandshrink",
+               "make_configs":["src/test/isolation2:installcheck-expandshrink"]
+              },
+              {"test":"ic-singlenode",
+               "make_configs":["src/test/isolation:installcheck-singlenode",
+                               "src/test/singlenode_regress:installcheck-singlenode",
+                               "src/test/singlenode_isolation2:installcheck-singlenode"],
+               "num_primary_mirror_pairs":0
+              },
+              {"test":"ic-resgroup-v2",
+               "make_configs":["src/test/isolation2:installcheck-resgroup-v2"],
+               "enable_cgroups":true
+              },
+              {"test":"ic-contrib",
+               "make_configs":["contrib/auto_explain:installcheck",
+                               "contrib/citext:installcheck",
+                               "contrib/btree_gin:installcheck",
+                               "contrib/file_fdw:installcheck",
+                               "contrib/formatter_fixedwidth:installcheck",
+                               "contrib/extprotocol:installcheck",
+                               "contrib/dblink:installcheck",
+                               "contrib/pg_trgm:installcheck",
+                               "contrib/indexscan:installcheck",
+                               "contrib/hstore:installcheck",
+                               "contrib/pgcrypto:installcheck",
+                               "contrib/tablefunc:installcheck",
+                               "contrib/passwordcheck:installcheck",
+                               "contrib/sslinfo:installcheck"]
+              },
+              {"test":"ic-gpcontrib",
+               "make_configs":["gpcontrib/orafce:installcheck",
+                               "gpcontrib/pxf_fdw:installcheck",
+                               "gpcontrib/zstd:installcheck",
+                               "gpcontrib/gp_sparse_vector:installcheck",
+                               "gpcontrib/gp_toolkit:installcheck"]
+              },
+              {"test":"ic-fixme",
+               "make_configs":["src/test/regress:installcheck-fixme"],
+               "enable_core_check":false
+              },
+              {"test":"ic-isolation2",
+               "make_configs":["src/test/isolation2:installcheck-isolation2"]
+              },
+              {"test":"ic-isolation2-crash",
+               "make_configs":["src/test/isolation2:installcheck-isolation2-crash"],
+               "enable_core_check":false
+              },
+              {"test":"ic-parallel-retrieve-cursor",
+               "make_configs":["src/test/isolation2:installcheck-parallel-retrieve-cursor"]
+              }
+            ]
+          }'
+
+          # Function to apply defaults
+          apply_defaults() {
+            echo "$1" | jq --arg     npm "$DEFAULT_NUM_PRIMARY_MIRROR_PAIRS" \
+                           --argjson ec  "$DEFAULT_ENABLE_CGROUPS" \
+                           --argjson ecc "$DEFAULT_ENABLE_CORE_CHECK" \
+                           --arg     opt "$DEFAULT_PG_SETTINGS_OPTIMIZER" \
+              'def get_defaults:
+                {
+                  num_primary_mirror_pairs: ($npm|tonumber),
+                  enable_cgroups: $ec,
+                  enable_core_check: $ecc,
+                  pg_settings: {
+                    optimizer: $opt
+                  }
+                };
+               get_defaults * .'
+          }
+
+          # Extract all valid test names from ALL_TESTS
+          VALID_TESTS=$(echo "$ALL_TESTS" | jq -r '.include[].test')
+
+          # Parse input test selection
+          IFS=',' read -ra SELECTED_TESTS <<< "${{ github.event.inputs.test_selection }}"
+
+          # Default to all tests if selection is empty or 'all'
+          if [[ "${SELECTED_TESTS[*]}" == "all" || -z "${SELECTED_TESTS[*]}" ]]; then
+            mapfile -t SELECTED_TESTS <<< "$VALID_TESTS"
+          fi
+
+          # Validate and filter selected tests
+          INVALID_TESTS=()
+          FILTERED_TESTS=()
+          for TEST in "${SELECTED_TESTS[@]}"; do
+            TEST=$(echo "$TEST" | tr -d '[:space:]') # Trim whitespace
+            if echo "$VALID_TESTS" | grep -qw "$TEST"; then
+              FILTERED_TESTS+=("$TEST")
+            else
+              INVALID_TESTS+=("$TEST")
+            fi
+          done
+
+          # Handle invalid tests
+          if [[ ${#INVALID_TESTS[@]} -gt 0 ]]; then
+            echo "::error::Invalid test(s) selected: ${INVALID_TESTS[*]}"
+            echo "Valid tests are: $(echo "$VALID_TESTS" | tr '\n' ', ')"
+            exit 1
+          fi
+
+          # Build result JSON with defaults applied
+          RESULT='{"include":['
+          FIRST=true
+          for TEST in "${FILTERED_TESTS[@]}"; do
+            CONFIG=$(jq -c --arg test "$TEST" '.include[] | select(.test == $test)' <<< "$ALL_TESTS")
+            FILTERED_WITH_DEFAULTS=$(apply_defaults "$CONFIG")
+            if [[ "$FIRST" == true ]]; then
+              FIRST=false
+            else
+              RESULT="${RESULT},"
+            fi
+            RESULT="${RESULT}${FILTERED_WITH_DEFAULTS}"
+          done
+          RESULT="${RESULT}]}"
+
+          # Output the matrix for GitHub Actions
+          echo "Final matrix configuration:"
+          echo "$RESULT" | jq .
+
+          # Fix: Use block redirection
+          {
+            echo "matrix<<EOF"
+            echo "$RESULT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "=== Matrix Preparation Complete ==="
+
+  ## ======================================================================
   ## Job: build
   ## ======================================================================
 
@@ -197,7 +367,7 @@ jobs:
     name: Build Apache Cloudberry
     env:
       JOB_TYPE: build
-    needs: check-skip
+    needs: [check-skip]
     runs-on: ubuntu-22.04
     timeout-minutes: 120
     outputs:
@@ -658,140 +828,15 @@ jobs:
   ## Job: test
   ## ======================================================================
 
-  # WARNING: When adding new pg_settings key/value pairs:
-  # 1. Add the new setting with empty string ("") in all matrix entries
-  # 2. Update the "Run Tests" step to check and apply the new setting
-  # 3. Example: pg_settings.new_setting must be added to ALL matrix entries
-
   test:
     name: ${{ matrix.test }}
-    needs: [check-skip, build]
+    needs: [check-skip, build, prepare-test-matrix]
     runs-on: ubuntu-22.04
     timeout-minutes: 120
     # actionlint-allow matrix[*].pg_settings
     strategy:
       fail-fast: false  # Continue with other tests if one fails
-
-      matrix:
-        include:
-
-          - test: ic-good-opt-off
-            make_configs:
-              - src/test/regress:installcheck-good
-            num_primary_mirror_pairs: 3
-            enable_cgroups: false
-            enable_core_check: true
-            pg_settings:
-              optimizer: "off"
-
-          - test: ic-good-opt-on
-            make_configs:
-              - src/test/regress:installcheck-good
-            num_primary_mirror_pairs: 3
-            enable_cgroups: false
-            enable_core_check: true
-            pg_settings:
-              optimizer: "on"
-
-          - test: ic-expandshrink
-            make_configs:
-              - src/test/isolation2:installcheck-expandshrink
-            num_primary_mirror_pairs: 3
-            enable_cgroups: false
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-singlenode
-            make_configs:
-              - src/test/isolation:installcheck-singlenode
-              - src/test/singlenode_regress:installcheck-singlenode
-              - src/test/singlenode_isolation2:installcheck-singlenode
-            num_primary_mirror_pairs: 0
-            enable_cgroups: false
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-resgroup-v2
-            make_configs:
-              - src/test/isolation2:installcheck-resgroup-v2
-            num_primary_mirror_pairs: 3
-            enable_cgroups: true
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-contrib
-            make_configs:
-              - contrib/auto_explain:installcheck
-              - contrib/citext:installcheck
-              - contrib/btree_gin:installcheck
-              - contrib/file_fdw:installcheck
-              - contrib/formatter_fixedwidth:installcheck
-              - contrib/extprotocol:installcheck
-              - contrib/dblink:installcheck
-              - contrib/pg_trgm:installcheck
-              - contrib/indexscan:installcheck
-              - contrib/hstore:installcheck
-              - contrib/pgcrypto:installcheck
-              - contrib/tablefunc:installcheck
-              - contrib/passwordcheck:installcheck
-              - contrib/sslinfo:installcheck
-            num_primary_mirror_pairs: 3
-            enable_cgroups: false
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-gpcontrib
-            make_configs:
-              - gpcontrib/orafce:installcheck
-              - gpcontrib/pxf_fdw:installcheck
-              - gpcontrib/zstd:installcheck
-              - gpcontrib/gp_sparse_vector:installcheck
-              - gpcontrib/gp_toolkit:installcheck
-            num_primary_mirror_pairs: 3
-            enable_cgroups: false
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-fixme
-            make_configs:
-              - src/test/regress:installcheck-fixme
-            num_primary_mirror_pairs: 3
-            enable_cgroups: false
-            enable_core_check: false
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-isolation2
-            make_configs:
-              - src/test/isolation2:installcheck-isolation2
-            num_primary_mirror_pairs: 3
-            enable_cgroups: true
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-isolation2-crash
-            make_configs:
-              - src/test/isolation2:installcheck-isolation2-crash
-            num_primary_mirror_pairs: 3
-            enable_cgroups: true
-            enable_core_check: false
-            pg_settings:
-              optimizer: ""
-
-          - test: ic-parallel-retrieve-cursor
-            make_configs:
-              - src/test/isolation2:installcheck-parallel-retrieve-cursor
-            num_primary_mirror_pairs: 3
-            enable_cgroups: true
-            enable_core_check: true
-            pg_settings:
-              optimizer: ""
+      matrix: ${{ fromJson(needs.prepare-test-matrix.outputs.test-matrix) }}
 
     container:
       image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
@@ -1652,7 +1697,7 @@ jobs:
 
   report:
     name: Generate Apache Cloudberry Build Report
-    needs: [check-skip, build, rpm-install-test, test]
+    needs: [check-skip, build, prepare-test-matrix, rpm-install-test, test]
     if: always()
     runs-on: ubuntu-22.04
     steps:
