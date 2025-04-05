@@ -22,7 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
 if [ ! -L "${SCRIPT_DIR}" ]; then
     GPHOME=${SCRIPT_DIR}
 else
-    GPHOME=$(readlink "${SCRIPT_DIR}")
+    GPHOME=$(readlink -f "${SCRIPT_DIR}")
 fi
 EOF
 
