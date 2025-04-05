@@ -308,6 +308,7 @@ jobs:
 
       - name: Move cloudberry-devops-release directory
         if: needs.check-skip.outputs.should_skip != 'true'
+        shell: bash
         run: |
           set -eo pipefail
           if ! mv "${GITHUB_WORKSPACE}"/cloudberry-devops-release "${GITHUB_WORKSPACE}"/..; then
@@ -319,6 +320,7 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         env:
           LOGS_DIR: build-logs
+        shell: bash
         run: |
           set -eo pipefail
           if ! su - gpadmin -c "/tmp/init_system.sh"; then
@@ -364,6 +366,7 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         env:
           SRC_DIR: ${{ github.workspace }}
+        shell: bash
         run: |
           set -eo pipefail
           chmod +x "${SRC_DIR}"/../cloudberry-devops-release/build_automation/cloudberry/scripts/configure-cloudberry.sh
@@ -376,6 +379,7 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         env:
           SRC_DIR: ${{ github.workspace }}
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -387,6 +391,7 @@ jobs:
 
       - name: Verify build artifacts
         if: needs.check-skip.outputs.should_skip != 'true'
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -440,6 +445,7 @@ jobs:
           CBDB_VERSION: 99.0.0
           BUILD_NUMBER: 1
           SRC_DIR: ${{ github.workspace }}
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -507,6 +513,7 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         env:
           SRC_DIR: ${{ github.workspace }}
+        shell: bash
         run: |
           set -eo pipefail
           chmod +x "${SRC_DIR}"/../cloudberry-devops-release/build_automation/cloudberry/scripts/unittest-cloudberry.sh
@@ -587,6 +594,7 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         env:
           LOGS_DIR: install-logs
+        shell: bash
         run: |
           set -eo pipefail
           if ! su - gpadmin -c "/tmp/init_system.sh"; then
@@ -619,6 +627,7 @@ jobs:
       - name: Verify RPM artifacts
         if: needs.check-skip.outputs.should_skip != 'true'
         id: verify-artifacts
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -671,6 +680,7 @@ jobs:
           RPM_FILE: ${{ steps.verify-artifacts.outputs.rpm_file }}
           RPM_VERSION: ${{ steps.verify-artifacts.outputs.version }}
           RPM_RELEASE: ${{ steps.verify-artifacts.outputs.release }}
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -771,6 +781,7 @@ jobs:
 
       - name: Move cloudberry-devops-release directory
         if: needs.check-skip.outputs.should_skip != 'true'
+        shell: bash
         run: |
           set -eo pipefail
           if ! mv "${GITHUB_WORKSPACE}"/cloudberry-devops-release "${GITHUB_WORKSPACE}"/..; then
@@ -781,6 +792,7 @@ jobs:
       - name: Cloudberry Environment Initialization
         env:
           LOGS_DIR: build-logs
+        shell: bash
         run: |
           set -eo pipefail
           if ! su - gpadmin -c "/tmp/init_system.sh"; then
@@ -989,6 +1001,7 @@ jobs:
       - name: Verify downloaded artifacts
         if: needs.check-skip.outputs.should_skip != 'true'
         id: verify-artifacts
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -1061,6 +1074,7 @@ jobs:
           RPM_FILE: ${{ steps.verify-artifacts.outputs.rpm_file }}
           RPM_VERSION: ${{ steps.verify-artifacts.outputs.version }}
           RPM_RELEASE: ${{ steps.verify-artifacts.outputs.release }}
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -1095,6 +1109,7 @@ jobs:
         env:
           SRC_TARBALL_FILE: ${{ steps.verify-artifacts.outputs.src_tarball_file }}
           SRC_DIR: ${{ github.workspace }}
+        shell: bash
         run: |
           set -eo pipefail
 
@@ -1119,6 +1134,7 @@ jobs:
         if: success() && needs.check-skip.outputs.should_skip != 'true'
         env:
           SRC_DIR: ${{ github.workspace }}
+        shell: bash
         run: |
           set -eo pipefail
 
