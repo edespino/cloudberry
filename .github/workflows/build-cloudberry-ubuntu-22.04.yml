@@ -1,6 +1,8 @@
 name: Apache Cloudberry Build - Ubuntu 22.04
 
 on:
+  push:
+    branches: [ubuntu-22.04]
   workflow_dispatch:
     inputs:
       test_selection:
