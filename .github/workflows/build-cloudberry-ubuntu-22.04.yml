@@ -301,8 +301,8 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: apache/cloudberry-devops-release
-          ref: main
+          repository: edespino/cloudberry-devops-release
+          ref: ubuntu-22.04
           path: cloudberry-devops-release
           fetch-depth: 1
 
@@ -774,8 +774,8 @@ jobs:
         if: needs.check-skip.outputs.should_skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: apache/cloudberry-devops-release
-          ref: main
+          repository: edespino/cloudberry-devops-release
+          ref: ubuntu-22.04
           path: cloudberry-devops-release
           fetch-depth: 1
 
