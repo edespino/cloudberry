@@ -78,27 +78,26 @@ github:
         # Require branches to be up to date before merging
         strict: true
 
-      # Required status checks that must pass
-      # Note: These contexts match the exact job names in GitHub
-      # Actions workflows. They do not include the workflow name as a
-      # prefix
-      contexts:
-        - check-skip
-        - Build Apache Cloudberry
-        - RPM Install Test Apache Cloudberry
-        - ic-good-opt-off
-        - ic-good-opt-on
-        - ic-expandshrink
-        - ic-singlenode
-        - ic-resgroup-v2
-        - ic-contrib
-        - ic-gpcontrib
-        - ic-fixme
-        - ic-isolation2
-        - ic-isolation2-crash
-        - ic-parallel-retrieve-cursor
-        - Generate Apache Cloudberry Build Report
-        - ic-cbdb-parallel
+        # Required status checks that must pass
+        # Note: These contexts match the exact job names in GitHub
+        # Actions workflows. They do not include the workflow name as a
+        # prefix
+        contexts:
+          - check-skip
+          - Build Apache Cloudberry RPM
+          - RPM Install Test Apache Cloudberry
+          - ic-good-opt-off
+          - ic-good-opt-on
+          - ic-expandshrink
+          - ic-singlenode
+          - ic-resgroup-v2
+          - ic-contrib
+          - ic-gpcontrib
+          - ic-fixme
+          - ic-isolation2
+          - ic-isolation2-crash
+          - ic-parallel-retrieve-cursor
+          - Generate Apache Cloudberry Build Report
 
       # Pull request review requirements
       required_pull_request_reviews:
