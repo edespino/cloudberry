@@ -1,0 +1,1605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to you under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Usage:
+This pom.xml file defines the Apache RAT license matching rules used to
+validate the source tree for Apache Cloudberry (Incubating).
+
+Background:
+To comply with ASF release policies, all source files must be covered by
+approved licenses. This configuration explicitly matches legacy content
+from PostgreSQL, Greenplum, EMC, VMware, Broadcom, Pivotal, and other
+contributors, ensuring all licensing variations are properly categorized
+for Apache Cloudberry releases.
+
+Do not modify matcher categories without reviewing their use across the
+source tree. Add new license matchers as needed when introducing third-party
+code or new licensing patterns.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.cloudberry</groupId>
+  <artifactId>rat-test</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.16.1</version>
+        <configuration>
+          <consoleOutput>true</consoleOutput>
+          <excludes>
+            <!--
+                The following files are part of the original Greenplum
+                Database open-source release, licensed under the Apache
+                License 2.0 by Greenplum/Pivotal/VMware.
+
+                These files do not contain license headers or recognizable
+                license markers, but are Apache-licensed by virtue of their
+                inclusion in the upstream Greenplum project. We exclude them
+                from Apache RAT scans to avoid false positives, while
+                retaining them in the source distribution.
+            -->
+
+            <exclude>gpcontrib/gp_internal_tools/expected/gp_session_state_memory.out</exclude>
+            <exclude>gpcontrib/gp_internal_tools/Makefile</exclude>
+            <exclude>gpcontrib/gp_internal_tools/gp_internal_tools.control</exclude>
+            <exclude>gpcontrib/gp_internal_tools/uninstall_gp_session_state.sql</exclude>
+            <exclude>gpcontrib/gp_internal_tools/gp_internal_tools--1.0.0.sql</exclude>
+            <exclude>gpcontrib/gp_internal_tools/gp_session_state_memory_stats.c</exclude>
+            <exclude>gpcontrib/gp_internal_tools/gp_instrument_shmem.c</exclude>
+            <exclude>gpcontrib/gp_internal_tools/sql/gp_session_state_memory.sql</exclude>
+
+            <exclude>gpcontrib/orafce/*.c</exclude>
+            <exclude>gpcontrib/orafce/*.h</exclude>
+            <exclude>gpcontrib/orafce/*.l</exclude>
+            <exclude>gpcontrib/orafce/init_file</exclude>
+            <exclude>gpcontrib/orafce/orafce.control</exclude>
+            <exclude>gpcontrib/orafce/msvc/orafce.2010.vcxproj.filters</exclude>
+            <exclude>gpcontrib/orafce/msvc/orafce.2010.sln</exclude>
+            <exclude>gpcontrib/orafce/README.msvc</exclude>
+            <exclude>gpcontrib/orafce/README.asciidoc</exclude>
+            <exclude>gpcontrib/orafce/Makefile</exclude>
+            <exclude>gpcontrib/orafce/sqlparse.y</exclude>
+            <exclude>gpcontrib/orafce/.editorconfig</exclude>
+            <exclude>gpcontrib/orafce/INSTALL.orafce</exclude>
+            <exclude>gpcontrib/orafce/README.gp</exclude>
+            <exclude>gpcontrib/orafce/parallel_schedule</exclude>
+            <exclude>gpcontrib/orafce/.travis.yml</exclude>
+
+            <exclude>gpcontrib/pxf_fdw/pxf_option.c</exclude>
+            <exclude>gpcontrib/pxf_fdw/Makefile</exclude>
+            <exclude>gpcontrib/pxf_fdw/pxf_fdw.h</exclude>
+            <exclude>gpcontrib/pxf_fdw/pxf_fragment.c</exclude>
+            <exclude>gpcontrib/pxf_fdw/pxf_fdw.control</exclude>
+            <exclude>gpcontrib/pxf_fdw/pxf_deparse.c</exclude>
+            <exclude>gpcontrib/pxf_fdw/pxf_fdw.c</exclude>
+
+            <exclude>gpcontrib/gp_inject_fault/Makefile</exclude>
+            <exclude>gpcontrib/gp_inject_fault/gp_inject_fault.control</exclude>
+            <exclude>gpcontrib/gp_inject_fault/gp_inject_fault.c</exclude>
+
+            <exclude>gpcontrib/gpmapreduce/**</exclude>
+
+            <exclude>gpcontrib/Makefile</exclude>
+
+            <exclude>gpcontrib/gpcloud/Makefile</exclude>
+            <exclude>gpcontrib/gpcloud/include/**</exclude>
+            <exclude>gpcontrib/gpcloud/regress/**</exclude>
+            <exclude>gpcontrib/gpcloud/test/**</exclude>
+            <exclude>gpcontrib/gpcloud/bin/**</exclude>
+            <exclude>gpcontrib/gpcloud/src/**.cpp</exclude>
+
+            <exclude>gpcontrib/gp_debug_numsegments/Makefile</exclude>
+            <exclude>gpcontrib/gp_debug_numsegments/gp_debug_numsegments.control</exclude>
+
+            <exclude>gpcontrib/gp_replica_check/**</exclude>
+
+            <exlucde>gpcontrib/gp_distribution_policy/**/*.source</exlucde>
+            <exclude>gpcontrib/gp_distribution_policy/Makefile</exclude>
+            <exclude>gpcontrib/gp_distribution_policy/gp_distribution_policy.control</exclude>
+
+            <exclude>gpcontrib/gp_sparse_vector/README_INSTALL</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/test_output</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/README.devel</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/Makefile</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/gp_sparse_vector.control</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/README_term_proximity</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/bugs</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/README.update</exclude>
+            <exclude>gpcontrib/gp_sparse_vector/README.bitmap</exclude>
+
+            <exclude>gpcontrib/zstd/zstd_compression.c</exclude>
+            <exclude>gpcontrib/zstd/Makefile</exclude>
+
+            <exclude>gpcontrib/quicklz/Makefile</exclude>
+
+            <exclude>gpcontrib/gp_toolkit/**</exclude>
+
+            <exclude>gpcontrib/pg_hint_plan/**/*.source</exclude>
+            <exclude>gpcontrib/pg_hint_plan/update_copied_funcs.pl</exclude>
+            <exclude>gpcontrib/pg_hint_plan/SPECS/pg_hint_plan12.spec</exclude>
+
+            <exclude>gpcontrib/pg_hint_plan/pg_hint_plan.control</exclude>
+            <exclude>gpcontrib/pg_hint_plan/.github/workflows/test.yml</exclude>
+            <exclude>gpcontrib/pg_hint_plan/.gitattributes</exclude>
+            <exclude>gpcontrib/pg_hint_plan/doc/style.css</exclude>
+            <exclude>gpcontrib/pg_hint_plan/data/data.csv</exclude>
+            <exclude>gpcontrib/pg_hint_plan/sql/maskout2.sh</exclude>
+            <exclude>gpcontrib/pg_hint_plan/sql/maskout.sh</exclude>
+
+            <exclude>gpcontrib/gp_legacy_string_agg/**</exclude>
+
+            <exclude>gpcontrib/gp_exttable_fdw/**/gp_exttable_fdw.source</exclude>
+            <exclude>gpcontrib/gp_exttable_fdw/Makefile</exclude>
+            <exclude>gpcontrib/gp_exttable_fdw/data/**</exclude>
+            <exclude>gpcontrib/gp_exttable_fdw/gp_exttable_fdw.control</exclude>
+
+            <exclude>getversion</exclude>
+            <exclude>.git-blame-ignore-revs</exclude>
+            <exclude>.dir-locals.el</exclude>
+            <exclude>GNUmakefile.in</exclude>
+            <exclude>.github/DISCUSSION_TEMPLATE/ideas-feature-requests.yml</exclude>
+            <exclude>.github/DISCUSSION_TEMPLATE/proposal.yml</exclude>
+            <exclude>.github/full_color_black.svg</exclude>
+            <exclude>.github/ISSUE_TEMPLATE/bug-report.yml</exclude>
+            <exclude>.github/ISSUE_TEMPLATE/config.yml</exclude>
+            <exclude>.github/full_color_white.svg</exclude>
+            <exclude>.gitattributes</exclude>
+
+            <exclude>gpMgmt/demo/gpfdist_transform/**</exclude>
+
+            <exclude>gpMgmt/demo/gppkg/sample.control</exclude>
+            <exclude>gpMgmt/demo/gppkg/sample.spec</exclude>
+            <exclude>gpMgmt/demo/gppkg/gppkg_spec.yml.in</exclude>
+            <exclude>gpMgmt/demo/gppkg/build_gppkg.mk</exclude>
+            <exclude>gpMgmt/demo/gppkg/generate_sample_gppkg.sh</exclude>
+
+            <exclude>gpMgmt/demo/test/**</exclude>
+            <exclude>gpMgmt/test/**</exclude>
+
+            <exclude>gpMgmt/bin/gpload_test/gpload2/*.ans</exclude>
+            <exclude>gpMgmt/bin/gpload_test/gpload2/data/**</exclude>
+
+            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL/CMakeLists.txt</exclude>
+            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/tutorial/**</exclude>
+            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/pg.py</exclude>
+            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/docs/**</exclude>
+            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/setup.py</exclude>
+            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/pgdb.py</exclude>
+
+            <exclude>gpMgmt/bin/gpdemo</exclude>
+            <exclude>gpMgmt/bin/gpcheckperf</exclude>
+            <exclude>gpMgmt/bin/test/gpinitsystem_test.bash</exclude>
+            <exclude>gpMgmt/bin/test/suite.bash</exclude>
+            <exclude>gpMgmt/bin/gpcheckcat_modules/**</exclude>
+
+            <exclude>gpMgmt/bin/.rcfile</exclude>
+            <exclude>gpMgmt/bin/Makefile</exclude>
+            <exclude>gpMgmt/bin/stream/Makefile</exclude>
+            <exclude>gpMgmt/bin/stream/stream.f</exclude>
+            <exclude>gpMgmt/bin/stream/mysecond.c</exclude>
+            <exclude>gpMgmt/bin/stream/HISTORY.txt</exclude>
+            <exclude>gpMgmt/bin/stream/stream.c</exclude>
+            <exclude>gpMgmt/bin/ext/.gitkeep</exclude>
+            <exclude>gpMgmt/bin/gpload.bat</exclude>
+            <exclude>gpMgmt/bin/gpconfig_modules/**</exclude>
+
+            <exclude>gpMgmt/bin/gpreload</exclude>
+            <exclude>gpMgmt/bin/minirepro</exclude>
+            <exclude>gpMgmt/bin/gpstate</exclude>
+            <exclude>gpMgmt/bin/gpcheckcat</exclude>
+            <exclude>gpMgmt/bin/gpload</exclude>
+            <exclude>gpMgmt/bin/gpssh_modules/**</exclude>
+
+            <exclude>gpMgmt/bin/gpload_test/Makefile</exclude>
+            <exclude>gpMgmt/bin/gpload_test/gpload2/**</exclude>
+            <exclude>gpMgmt/bin/gpload_test/gpload/**</exclude>
+
+            <exclude>gpMgmt/bin/gprecoverseg</exclude>
+            <exclude>gpMgmt/bin/lib/gpstate.py</exclude>
+            <exclude>gpMgmt/bin/lib/Makefile</exclude>
+            <exclude>gpMgmt/bin/lib/gppinggpfdist.py</exclude>
+
+            <exclude>gpMgmt/bin/lib/crashreport.gdb</exclude>
+            <exclude>gpMgmt/bin/lib/.gitkeep</exclude>
+            <exclude>gpMgmt/bin/lib/__init__.py</exclude>
+            <exclude>gpMgmt/bin/lib/multidd</exclude>
+            <exclude>gpMgmt/bin/lib/pexpect/**</exclude>
+            <exclude>gpMgmt/bin/lib/gp_bash_version.sh.in</exclude>
+            <exclude>gpMgmt/bin/lib/gpconfigurenewsegment</exclude>
+
+            <exclude>gpMgmt/bin/gpssh</exclude>
+            <exclude>gpMgmt/bin/gppylib/unit2</exclude>
+            <exclude>gpMgmt/bin/gppylib/logfilter.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/gpunit</exclude>
+
+            <exclude>gpMgmt/bin/gppylib/test/**</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/test/**</exclude>
+            <exclude>gpMgmt/bin/gppylib/programs/test/**</exclude>
+            <exclude>gpMgmt/bin/gppylib/util/test/**</exclude>
+            <exclude>gpMgmt/bin/gppylib/db/test/**</exclude>
+            <exclude>gpMgmt/bin/gppylib/commands/test/**</exclude>
+            <exclude>gpMgmt/doc/**</exclude>
+
+            <exclude>gpMgmt/bin/gppylib/util/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/util/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/heapchecksum.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/deletesystem.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/unix.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/reload.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/rebalanceSegments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/test_utils_helper.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/buildMirrorSegments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/utils.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/initstandby.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/startSegments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/update_pg_hba_on_segments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/detect_unreachable_hosts.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/segment_reconfigurer.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/segment_tablespace_locations.py</exclude>
+
+            <exclude>gpMgmt/bin/gppylib/util/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/util/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/heapchecksum.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/deletesystem.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/unix.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/reload.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/rebalanceSegments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/test_utils_helper.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/buildMirrorSegments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/utils.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/initstandby.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/startSegments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/update_pg_hba_on_segments.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/detect_unreachable_hosts.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/segment_reconfigurer.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/operations/segment_tablespace_locations.py</exclude>
+
+            <exclude>gpMgmt/bin/gppylib/system/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/system/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/system/info.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/programs/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/programs/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/programs/clsRecoverSegment_triples.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/utils.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/db/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/db/__init__.py</exclude>
+
+            <exclude>gpMgmt/bin/gppylib/commands/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/commands/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/mainUtils.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/datetimeutils.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/gpMgmttest/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/gpMgmttest/__init__.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/data/Makefile</exclude>
+            <exclude>gpMgmt/bin/gppylib/pgconf.py</exclude>
+            <exclude>gpMgmt/bin/gppylib/recoveryinfo.py</exclude>
+
+            <exclude>gpMgmt/bin/gpaddmirrors</exclude>
+            <exclude>gpMgmt/bin/gpsync</exclude>
+            <exclude>gpMgmt/bin/gpssh-exkeys</exclude>
+
+            <exclude>gpMgmt/bin/generate-greenplum-path.sh</exclude>
+            <exclude>gpMgmt/bin/ifaddrs/Makefile</exclude>
+            <exclude>gpMgmt/bin/ifaddrs/main.c</exclude>
+            <exclude>gpMgmt/Makefile</exclude>
+            <exclude>gpMgmt/sbin/gpoperation.py</exclude>
+            <exclude>gpMgmt/sbin/recovery_base.py</exclude>
+            <exclude>gpMgmt/sbin/Makefile</exclude>
+            <exclude>gpMgmt/sbin/seg_update_pg_hba.py</exclude>
+
+            <exclude>gpMgmt/sbin/gpsegsetuprecovery.py</exclude>
+            <exclude>gpMgmt/sbin/gpsegrecovery.py</exclude>
+            <exclude>gpMgmt/Makefile.behave</exclude>
+            <exclude>gpMgmt/requirements-dev.txt</exclude>
+
+            <exclude>config/Makefile</exclude>
+            <exclude>config/ac_func_accept_argtypes.m4</exclude>
+            <exclude>config/c-compiler.m4</exclude>
+            <exclude>config/c-library.m4</exclude>
+            <exclude>config/check_modules.pl</exclude>
+            <exclude>config/curl.m4</exclude>
+            <exclude>config/cxx-compiler.m4</exclude>
+            <exclude>config/general.m4</exclude>
+            <exclude>config/llvm.m4</exclude>
+            <exclude>config/missing</exclude>
+            <exclude>config/orca.m4</exclude>
+            <exclude>config/perl.m4</exclude>
+            <exclude>config/prep_buildtree</exclude>
+            <exclude>config/programs.m4</exclude>
+            <exclude>config/python.m4</exclude>
+            <exclude>config/tcl.m4</exclude>
+
+            <!-- GPLv2-AUTOEXC -->
+            <exclude>config/pkg.m4</exclude>
+            <exclude>config/libtool.m4</exclude>
+            <exclude>config/ax_pthread.m4</exclude>
+
+            <exclude>.abi-check/**</exclude>
+
+            <exclude>deploy/**</exclude>
+
+            <exclude>.clang-tidy</exclude>
+            <exclude>putversion</exclude>
+            <exclude>.gitmodules</exclude>
+            <exclude>.editorconfig</exclude>
+            <exclude>sonar-project.properties</exclude>
+
+            <exclude>contrib/**/Makefile</exclude>
+            <exclude>contrib/**/*.control</exclude>
+            <exclude>contrib/**/*.source</exclude>
+            <exclude>contrib/**/*.data</exclude>
+            <exclude>contrib/**/*.csv</exclude>
+            <exclude>contrib/**/data/**</exclude>
+
+            <exclude>contrib/pg_standby/pg_standby.c</exclude>
+
+            <exclude>contrib/postgres_fdw/postgres_clean.bash</exclude>
+
+            <exclude>contrib/indexscan/indexscan.c</exclude>
+            <exclude>contrib/indexscan/indexscan.sql.in</exclude>
+
+            <exclude>contrib/file_fdw/init_file</exclude>
+            <exclude>contrib/file_fdw/data/**</exclude>
+
+            <exclude>contrib/extprotocol/gpextprotocol.c</exclude>
+
+            <exclude>contrib/isn/ISSN.h</exclude>
+            <exclude>contrib/isn/EAN13.h</exclude>
+            <exclude>contrib/isn/UPC.h</exclude>
+            <exclude>contrib/isn/ISMN.h</exclude>
+            <exclude>contrib/isn/ISBN.h</exclude>
+
+            <exclude>contrib/pg_trgm/trgm_op.c</exclude>
+            <exclude>contrib/pg_trgm/trgm_gin.c</exclude>
+            <exclude>contrib/pg_trgm/trgm_gist.c</exclude>
+            <exclude>contrib/pg_trgm/trgm.h</exclude>
+
+            <exclude>contrib/sslinfo/config.bash</exclude>
+            <exclude>contrib/sslinfo/sslinfo.c</exclude>
+
+            <exclude>contrib/unaccent/unaccent.rules</exclude>
+            <exclude>contrib/unaccent/generate_unaccent_rules.py</exclude>
+
+            <exclude>contrib/pax_storage/src/test/**</exclude>
+
+            <exclude>contrib/pax_storage/init_file</exclude>
+            <exclude>contrib/pax_storage/tools/gen_sql.c</exclude>
+            <exclude>contrib/pax_storage/CMakeLists.txt</exclude>
+            <exclude>contrib/pax_storage/hd-ci/clang_tidy_pax.bash</exclude>
+            <exclude>contrib/pax_storage/hd-ci/compile_pax.bash</exclude>
+            <exclude>contrib/pax_storage/.clang-tidy</exclude>
+            <exclude>contrib/pax_storage/pax_schedule</exclude>
+            <exclude>contrib/pax_storage/FindDependencies.cmake</exclude>
+            <exclude>contrib/pax_storage/.clang-format</exclude>
+            <exclude>contrib/pax_storage/src/cpp/CMakeLists.txt</exclude>
+            <exclude>contrib/pax_storage/src/cpp/cmake/pax_format.cmake</exclude>
+            <exclude>contrib/pax_storage/src/cpp/cmake/pax.cmake</exclude>
+            <exclude>contrib/pax_storage/src/cpp/contrib/CPPLINT.cfg</exclude>
+            <exclude>contrib/pax_storage/src/cpp/storage/proto/micro_partition_stats.proto</exclude>
+            <exclude>contrib/pax_storage/src/cpp/storage/proto/pax.proto</exclude>
+            <exclude>contrib/pax_storage/src/cpp/storage/proto/CPPLINT.cfg</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/paxfile_type.cc</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/CMakeLists.txt</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/test/paxpy_test.py</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/paxpy_modules.cc</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/paxpy_comm.h</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/setup-debug.py</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/MANIFEST.in</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/paxfilereader_type.cc</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/setup.py</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/paxtype_cast.cc</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/setup.cfg</exclude>
+            <exclude>contrib/pax_storage/src/api/python3/paxpy_types.h</exclude>
+
+            <exclude>contrib/cube/cubeparse.y</exclude>
+            <exclude>contrib/cube/CHANGES</exclude>
+            <exclude>contrib/cube/cubedata.h</exclude>
+            <exclude>contrib/cube/cubescan.l</exclude>
+            <exclude>contrib/cube/cube.c</exclude>
+
+            <exclude>contrib/hstore_plperl/init_file</exclude>
+            <exclude>contrib/hstore_plperl/hstore_plperl.c</exclude>
+
+            <exclude>contrib/dblink/pg_service.conf</exclude>
+
+            <exclude>contrib/intarray/_int.h</exclude>
+            <exclude>contrib/intarray/_int_bool.c</exclude>
+            <exclude>contrib/intarray/_int_gin.c</exclude>
+            <exclude>contrib/intarray/_intbig_gist.c</exclude>
+            <exclude>contrib/intarray/_int_gist.c</exclude>
+            <exclude>contrib/intarray/_int_op.c</exclude>
+            <exclude>contrib/intarray/_int_tool.c</exclude>
+            <exclude>contrib/intarray/package/gppkg_spec.yml.in</exclude>
+            <exclude>contrib/intarray/package/intarray.spec</exclude>
+
+            <exclude>contrib/sasdemo/test/**</exclude>
+            <exclude>contrib/sasdemo/sender/sassender.c</exclude>
+            <exclude>contrib/sasdemo/sas/sas_read.c</exclude>
+            <exclude>contrib/sasdemo/sas/sas_write.c</exclude>
+            <exclude>contrib/sasdemo/receiver/sasreceiver.c</exclude>
+
+            <exclude>contrib/dict_xsyn/xsyn_sample.rules</exclude>
+
+            <exclude>contrib/btree_gin/btree_gin.c</exclude>
+
+            <exclude>contrib/earthdistance/earthdistance.c</exclude>
+
+            <exclude>contrib/interconnect/test/**</exclude>
+            <exclude>contrib/interconnect/udp/ic_udpifc.h</exclude>
+            <exclude>contrib/interconnect/Makefile.interconnect.in</exclude>
+            <exclude>contrib/interconnect/ic_modules.h</exclude>
+            <exclude>contrib/interconnect/ic_common.c</exclude>
+            <exclude>contrib/interconnect/tcp/ic_tcp.h</exclude>
+            <exclude>contrib/interconnect/ic_internal.h</exclude>
+            <exclude>contrib/interconnect/ic_common.h</exclude>
+            <exclude>contrib/interconnect/ic_modules.c</exclude>
+
+            <exclude>contrib/pg_freespacemap/pg_freespacemap.c</exclude>
+
+            <exclude>contrib/ltree/_ltree_gist.c</exclude>
+            <exclude>contrib/ltree/ltree_gist.c</exclude>
+            <exclude>contrib/ltree/ltree_op.c</exclude>
+            <exclude>contrib/ltree/ltree.h</exclude>
+            <exclude>contrib/ltree/ltxtquery_op.c</exclude>
+            <exclude>contrib/ltree/_ltree_op.c</exclude>
+            <exclude>contrib/ltree/crc32.c</exclude>
+            <exclude>contrib/ltree/ltxtquery_io.c</exclude>
+            <exclude>contrib/ltree/ltree_io.c</exclude>
+            <exclude>contrib/ltree/lquery_op.c</exclude>
+            <exclude>contrib/ltree/crc32.h</exclude>
+
+            <exclude>contrib/pg_stat_statements/pg_stat_statements.conf</exclude>
+
+            <exclude>contrib/pg_buffercache/pg_buffercache_pages.c</exclude>
+
+            <exclude>contrib/start-scripts/macos/org.postgresql.postgres.plist</exclude>
+            <exclude>contrib/start-scripts/macos/postgres-wrapper.sh</exclude>
+            <exclude>contrib/start-scripts/freebsd</exclude>
+            <exclude>contrib/start-scripts/linux</exclude>
+
+            <exclude>contrib/spi/moddatetime.c</exclude>
+            <exclude>contrib/spi/moddatetime.example</exclude>
+            <exclude>contrib/spi/insert_username.example</exclude>
+            <exclude>contrib/spi/insert_username.c</exclude>
+            <exclude>contrib/spi/autoinc.c</exclude>
+            <exclude>contrib/spi/refint.example</exclude>
+            <exclude>contrib/spi/autoinc.example</exclude>
+            <exclude>contrib/spi/refint.c</exclude>
+
+            <exclude>contrib/formatter/gpformatter.c</exclude>
+
+            <exclude>contrib/ltree_plpython/ltree_plpython.c</exclude>
+
+            <exclude>contrib/contrib-global.mk</exclude>
+
+            <exclude>contrib/hstore/hstore_gin.c</exclude>
+            <exclude>contrib/hstore/hstore_op.c</exclude>
+            <exclude>contrib/hstore/hstore_gist.c</exclude>
+            <exclude>contrib/hstore/hstore_io.c</exclude>
+            <exclude>contrib/hstore/hstore.h</exclude>
+            <exclude>contrib/hstore/hstore_compat.c</exclude>
+
+            <exclude>contrib/oid2name/oid2name.c</exclude>
+
+            <exclude>contrib/pgcrypto/crypt-md5.c</exclude>
+            <exclude>contrib/pgcrypto/openssl_redirect.c</exclude>
+            <exclude>contrib/pgcrypto/crypt-gensalt.c</exclude>
+            <exclude>contrib/pgcrypto/rijndael.c</exclude>
+            <exclude>contrib/pgcrypto/rijndael.tbl</exclude>
+            <exclude>contrib/pgcrypto/rijndael.h</exclude>
+            <exclude>contrib/pgcrypto/crypt-blowfish.c</exclude>
+            <exclude>contrib/pgcrypto/sm4.h</exclude>
+            <exclude>contrib/pgcrypto/package/gppkg_spec.yml.in</exclude>
+            <exclude>contrib/pgcrypto/package/pgcrypto.spec</exclude>
+
+            <exclude>contrib/citext/citext.c</exclude>
+
+            <exclude>contrib/jsonb_plpython/jsonb_plpython.c</exclude>
+
+            <exclude>contrib/bool_plperl/bool_plperl.c</exclude>
+
+            <exclude>contrib/jsonb_plperl/jsonb_plperl.c</exclude>
+
+            <exclude>contrib/seg/segdata.h</exclude>
+            <exclude>contrib/seg/segscan.l</exclude>
+            <exclude>contrib/seg/seg.c</exclude>
+            <exclude>contrib/seg/segparse.y</exclude>
+
+            <exclude>contrib/auto_explain/init_file</exclude>
+
+            <exclude>contrib/lo/lo.c</exclude>
+
+            <exclude>contrib/xml2/xpath.c</exclude>
+            <exclude>contrib/xml2/xslt_proc.c</exclude>
+
+            <exclude>contrib/btree_gist/btree_int4.c</exclude>
+            <exclude>contrib/btree_gist/init_file</exclude>
+            <exclude>contrib/btree_gist/btree_oid.c</exclude>
+            <exclude>contrib/btree_gist/btree_gist.h</exclude>
+            <exclude>contrib/btree_gist/btree_ts.c</exclude>
+            <exclude>contrib/btree_gist/btree_date.c</exclude>
+            <exclude>contrib/btree_gist/btree_inet.c</exclude>
+            <exclude>contrib/btree_gist/btree_text.c</exclude>
+            <exclude>contrib/btree_gist/btree_float4.c</exclude>
+            <exclude>contrib/btree_gist/btree_enum.c</exclude>
+            <exclude>contrib/btree_gist/btree_numeric.c</exclude>
+            <exclude>contrib/btree_gist/btree_bit.c</exclude>
+            <exclude>contrib/btree_gist/btree_uuid.c</exclude>
+            <exclude>contrib/btree_gist/btree_utils_num.c</exclude>
+            <exclude>contrib/btree_gist/btree_time.c</exclude>
+            <exclude>contrib/btree_gist/btree_utils_var.c</exclude>
+            <exclude>contrib/btree_gist/btree_int2.c</exclude>
+            <exclude>contrib/btree_gist/btree_int8.c</exclude>
+            <exclude>contrib/btree_gist/btree_gist.c</exclude>
+            <exclude>contrib/btree_gist/btree_interval.c</exclude>
+            <exclude>contrib/btree_gist/btree_macaddr.c</exclude>
+            <exclude>contrib/btree_gist/btree_float8.c</exclude>
+            <exclude>contrib/btree_gist/btree_bytea.c</exclude>
+            <exclude>contrib/btree_gist/btree_macaddr8.c</exclude>
+            <exclude>contrib/btree_gist/btree_utils_var.h</exclude>
+            <exclude>contrib/btree_gist/btree_cash.c</exclude>
+            <exclude>contrib/btree_gist/btree_utils_num.h</exclude>
+
+            <exclude>contrib/test_decoding/specs/ondisk_startup.spec</exclude>
+            <exclude>contrib/test_decoding/specs/mxact.spec</exclude>
+            <exclude>contrib/test_decoding/specs/concurrent_ddl_dml.spec</exclude>
+            <exclude>contrib/test_decoding/specs/twophase_snapshot.spec</exclude>
+            <exclude>contrib/test_decoding/specs/oldest_xmin.spec</exclude>
+            <exclude>contrib/test_decoding/specs/delayed_startup.spec</exclude>
+            <exclude>contrib/test_decoding/specs/subxact_without_top.spec</exclude>
+            <exclude>contrib/test_decoding/specs/snapshot_transfer.spec</exclude>
+            <exclude>contrib/test_decoding/specs/concurrent_stream.spec</exclude>
+            <exclude>contrib/test_decoding/logical.conf</exclude>
+
+            <exclude>contrib/hstore_plpython/hstore_plpython.c</exclude>
+
+            <exclude>contrib/sepgsql/sepgsql-regtest.te</exclude>
+            <exclude>contrib/sepgsql/sepgsql.sql.in</exclude>
+            <exclude>contrib/sepgsql/test_sepgsql</exclude>
+
+            <exclude>contrib/formatter_fixedwidth/fixedwidth.c</exclude>
+
+            <exclude>gpAux/gpdemo/gpdemo-defaults.sh</exclude>
+            <exclude>gpAux/gpdemo/Makefile</exclude>
+            <exclude>gpAux/gpdemo/demo_cluster.sh</exclude>
+            <exclude>gpAux/gpdemo/lalshell</exclude>
+            <exclude>gpAux/gpdemo/generate_certs.sh</exclude>
+            <exclude>gpAux/gpdemo/probe_config.sh</exclude>
+            <exclude>gpAux/BUILD_INSTRUCTIONS</exclude>
+            <exclude>gpAux/Makefile.global</exclude>
+            <exclude>gpAux/Makefile</exclude>
+            <exclude>gpAux/Makefile.thirdparty</exclude>
+            <exclude>gpAux/extensions/pljava/src/java/Makefile.global</exclude>
+            <exclude>gpAux/releng/set_bld_arch.sh</exclude>
+            <exclude>gpAux/releng/gppkg.mk</exclude>
+            <exclude>gpAux/client/install/src/windows/Makefile</exclude>
+            <exclude>gpAux/client/install/src/windows/greenplum-clients.wxs</exclude>
+            <exclude>gpAux/client/install/src/windows/CreatePackage.bat</exclude>
+            <exclude>gpAux/client/install/src/windows/CopyDependencies.bat</exclude>
+            <exclude>gpAux/client/install/src/windows/license.rtf</exclude>
+            <exclude>gpAux/client/scripts/greenplum_clients_path.sh</exclude>
+            <exclude>gpAux/client/scripts/greenplum_clients_path.bat</exclude>
+
+            <exclude>doc/**</exclude>
+
+            <exclude>src/test/**/*.source</exclude>
+            <exclude>src/test/**/*.spec</exclude>
+            <exclude>src/test/**/*.control</exclude>
+
+            <include>src/backend/gporca/data/**</include>
+            <include>src/backend/gporca/**/Makefile</include>
+
+            <exclude>src/backend/gporca/cmake/FindXerces.cmake</exclude>
+            <exclude>src/backend/gporca/concourse/build_and_test.py</exclude>
+            <exclude>src/backend/gporca/concourse/xerces-c/build_xerces.py</exclude>
+            <exclude>src/backend/gporca/concourse/xerces-c/xerces-c-3.1.2.tar.gz.sha256</exclude>
+            <exclude>src/backend/gporca/server/fixdxl.sh</exclude>
+            <exclude>src/backend/gporca/server/include/unittest/gpopt/operators/CScalarIsDistinctFromTest.h</exclude>
+            <exclude>src/backend/gporca/server/dxl.xsd</exclude>
+            <exclude>src/backend/gporca/server/src/unittest/gpopt/operators/CScalarIsDistinctFromTest.cpp</exclude>
+            <exclude>src/backend/gporca/libgpos/CMakeLists.txt</exclude>
+            <exclude>src/backend/gporca/libgpos/include/gpos/attributes.h</exclude>
+            <exclude>src/backend/gporca/scripts/fix_lookup_failure.py</exclude>
+            <exclude>src/backend/gporca/scripts/dxl_modify_partitioned_index.py</exclude>
+            <exclude>src/backend/gporca/scripts/tests/test_cal_bitmap_test.py</exclude>
+            <exclude>src/backend/gporca/scripts/get_debug_event_counters.py</exclude>
+            <exclude>src/backend/gporca/scripts/convert_minirepro_6_to_7.py</exclude>
+            <exclude>src/backend/gporca/scripts/cal_bitmap_test.py</exclude>
+            <exclude>src/backend/gporca/scripts/fix_mdps.py</exclude>
+            <exclude>src/backend/gporca/scripts/convert_minirepro_5_to_6.py</exclude>
+            <exclude>src/backend/gporca/.clang-format</exclude>
+            <exclude>src/backend/gporca/libgpopt/src/operators/CPhysicalUnionAll.cpp</exclude>
+            <exclude>src/backend/gporca/clang-format.intent.yaml</exclude>
+            <exclude>src/backend/gporca/gporca.mk</exclude>
+
+            <exclude>src/test/**</exclude>
+
+            <exclude>src/**/GNUmakefile</exclude>
+            <exclude>src/**/Makefile</exclude>
+            <exclude>src/**/*.source</exclude>
+            <exclude>src/**/*.control</exclude>
+            <exclude>src/**/*.po</exclude>
+            <exclude>src/**/init_file</exclude>
+
+            <exclude>src/pl/plpgsql/src/nls.mk</exclude>
+            <exclude>src/pl/plpgsql/src/data/copy1.data</exclude>
+            <exclude>src/pl/plpython/plpy_procedure.h</exclude>
+            <exclude>src/pl/plpython/plpy_resultobject.c</exclude>
+            <exclude>src/pl/plpython/plpy_plpymodule.h</exclude>
+            <exclude>src/pl/plpython/plpy_main.c</exclude>
+            <exclude>src/pl/plpython/plpy_util.h</exclude>
+            <exclude>src/pl/plpython/plpy_exec.h</exclude>
+            <exclude>src/pl/plpython/plpy_subxactobject.c</exclude>
+            <exclude>src/pl/plpython/plpy_spi.h</exclude>
+            <exclude>src/pl/plpython/plpy_typeio.c</exclude>
+            <exclude>src/pl/plpython/plpy_cursorobject.c</exclude>
+            <exclude>src/pl/plpython/plpy_elog.h</exclude>
+            <exclude>src/pl/plpython/plpy_planobject.c</exclude>
+            <exclude>src/pl/plpython/plpy_main.h</exclude>
+            <exclude>src/pl/plpython/plpy_plpymodule.c</exclude>
+            <exclude>src/pl/plpython/plpy_resultobject.h</exclude>
+            <exclude>src/pl/plpython/plpy_procedure.c</exclude>
+            <exclude>src/pl/plpython/plpy_util.c</exclude>
+            <exclude>src/pl/plpython/plpy_exec.c</exclude>
+            <exclude>src/pl/plpython/regress-python3-mangle.mk</exclude>
+            <exclude>src/pl/plpython/plpy_spi.c</exclude>
+            <exclude>src/pl/plpython/plpy_subxactobject.h</exclude>
+            <exclude>src/pl/plpython/nls.mk</exclude>
+            <exclude>src/pl/plpython/plpy_planobject.h</exclude>
+            <exclude>src/pl/plpython/plpy_cursorobject.h</exclude>
+            <exclude>src/pl/plpython/plpy_typeio.h</exclude>
+            <exclude>src/pl/plpython/plpy_elog.c</exclude>
+            <exclude>src/pl/plperl/Util.xs</exclude>
+            <exclude>src/pl/plperl/plperl.c</exclude>
+            <exclude>src/pl/plperl/SPI.xs</exclude>
+            <exclude>src/pl/plperl/plperl_helpers.h</exclude>
+            <exclude>src/pl/plperl/nls.mk</exclude>
+            <exclude>src/pl/tcl/pltcl.c</exclude>
+            <exclude>src/pl/tcl/nls.mk</exclude>
+
+            <exclude>src/Makefile.*</exclude>
+
+            <exclude>src/tutorial/funcs.c</exclude>
+            <exclude>src/tutorial/complex.c</exclude>
+
+            <exclude>src/tools/RELEASE_CHANGES</exclude>
+            <exclude>src/tools/gdb/.gdbinit</exclude>
+            <exclude>src/tools/codelines</exclude>
+            <exclude>src/tools/msvc/clean.bat</exclude>
+            <exclude>src/tools/msvc/pgbison.bat</exclude>
+            <exclude>src/tools/msvc/vcregress.bat</exclude>
+            <exclude>src/tools/msvc/build.bat</exclude>
+            <exclude>src/tools/msvc/install.bat</exclude>
+            <exclude>src/tools/msvc/pgflex.bat</exclude>
+            <exclude>src/tools/msvc/ecpg_regression.proj</exclude>
+            <exclude>src/tools/git-external-diff</exclude>
+            <exclude>src/tools/make_cmakelists</exclude>
+            <exclude>src/tools/fmt</exclude>
+            <exclude>src/tools/editors/emacs.samples</exclude>
+            <exclude>src/tools/editors/clion.xml</exclude>
+            <exclude>src/tools/editors/vim.samples</exclude>
+            <exclude>src/tools/make_etags</exclude>
+            <exclude>src/tools/ccsym</exclude>
+            <exclude>src/tools/make_ctags</exclude>
+            <exclude>src/tools/make_mkid</exclude>
+            <exclude>src/tools/tidy</exclude>
+            <exclude>src/tools/find_typedef</exclude>
+            <exclude>src/tools/hooks/pre-push</exclude>
+            <exclude>src/tools/valgrind.supp</exclude>
+            <exclude>src/tools/pgindent/perltidyrc</exclude>
+            <exclude>src/tools/pgindent/README.gpdb</exclude>
+            <exclude>src/tools/pgindent/exclude_file_patterns</exclude>
+            <exclude>src/tools/pgindent/pgindent.man</exclude>
+            <exclude>src/tools/pgindent/typedefs.list</exclude>
+            <exclude>src/tools/pgindent/pgperltidy</exclude>
+            <exclude>src/tools/find_static</exclude>
+            <exclude>src/tools/perlcheck/perlcriticrc</exclude>
+            <exclude>src/tools/perlcheck/pgperlcritic</exclude>
+            <exclude>src/tools/perlcheck/pgperlsyncheck</exclude>
+            <exclude>src/tools/perlcheck/find_perl_files</exclude>
+            <exclude>src/tools/find_badmacros</exclude>
+            <exclude>src/tools/pginclude/pgcompinclude</exclude>
+            <exclude>src/tools/pginclude/pgrminclude</exclude>
+            <exclude>src/tools/pginclude/pgdefine</exclude>
+            <exclude>src/tools/pginclude/pgfixinclude</exclude>
+            <exclude>src/tools/pgtest</exclude>
+            <exclude>src/tools/ifaddrs/test_ifaddrs.c</exclude>
+
+            <exclude>src/timezone/tznames/Asia.txt</exclude>
+            <exclude>src/timezone/tznames/Australia.txt</exclude>
+            <exclude>src/timezone/tznames/Europe.txt</exclude>
+            <exclude>src/timezone/tznames/Africa.txt</exclude>
+            <exclude>src/timezone/tznames/Atlantic.txt</exclude>
+            <exclude>src/timezone/tznames/Australia</exclude>
+            <exclude>src/timezone/tznames/Default</exclude>
+            <exclude>src/timezone/tznames/Antarctica.txt</exclude>
+            <exclude>src/timezone/tznames/India</exclude>
+            <exclude>src/timezone/tznames/Indian.txt</exclude>
+            <exclude>src/timezone/tznames/Pacific.txt</exclude>
+            <exclude>src/timezone/tznames/Etc.txt</exclude>
+            <exclude>src/timezone/tznames/America.txt</exclude>
+            <exclude>src/timezone/localtime.c</exclude>
+            <exclude>src/timezone/private.h</exclude>
+            <exclude>src/timezone/known_abbrevs.txt</exclude>
+            <exclude>src/timezone/tzfile.h</exclude>
+            <exclude>src/timezone/zic.c</exclude>
+            <exclude>src/timezone/data/tzdata.zi</exclude>
+
+            <exclude>src/bin/pg_rewind/t/101_ao_rewind.pl</exclude>
+            <exclude>src/bin/pg_rewind/t/102_bitmaptest.pl</exclude>
+            <exclude>src/bin/pg_rewind/t/105_tablespaces_objects_created_before_promotion.pl</exclude>
+            <exclude>src/bin/pg_rewind/t/106_tablespaces_objects_removed_after_promotion.pl</exclude>
+            <exclude>src/bin/pg_rewind/t/103_simple_no_rewind_required.pl</exclude>
+            <exclude>src/bin/pg_rewind/t/104_tablespaces_objects_created_after_promotion.pl</exclude>
+            <exclude>src/bin/pg_rewind/nls.mk</exclude>
+
+            <exclude>src/bin/pg_basebackup/nls.mk</exclude>
+
+            <exclude>src/bin/pgevent/pgevent.c</exclude>
+            <exclude>src/bin/pgevent/exports.txt</exclude>
+            <exclude>src/bin/pgevent/pgmsgevent.mc</exclude>
+            <exclude>src/bin/pgevent/pgmsgevent.h</exclude>
+            <exclude>src/bin/pgevent/pgmsgevent.rc</exclude>
+            <exclude>src/bin/pgevent/pgevent.def</exclude>
+
+            <exclude>src/bin/pg_config/nls.mk</exclude>
+
+            <exclude>src/bin/pg_test_fsync/pg_test_fsync.c</exclude>
+            <exclude>src/bin/pg_test_fsync/nls.mk</exclude>
+
+            <exclude>src/bin/initdb/nls.mk</exclude>
+
+            <exclude>src/bin/pg_waldump/rmgrdesc.h</exclude>
+            <exclude>src/bin/pg_waldump/rmgrdesc.c</exclude>
+            <exclude>src/bin/pg_waldump/nls.mk</exclude>
+
+            <exclude>src/bin/pg_verifybackup/nls.mk</exclude>
+
+            <exclude>src/bin/pg_amcheck/nls.mk</exclude>
+
+            <exclude>src/bin/gpfdist/gpfdist_helper.c</exclude>
+            <exclude>src/bin/gpfdist/CMakeLists.txt</exclude>
+            <exclude>src/bin/gpfdist/gpfdist.c</exclude>
+            <exclude>src/bin/gpfdist/transform.c</exclude>
+            <exclude>src/bin/gpfdist/wintest/pipe_win10.cpp</exclude>
+            <exclude>src/bin/gpfdist/regress/**</exclude>
+            <exclude>src/bin/gpfdist/gpfxdist.h</exclude>
+            <exclude>src/bin/gpfdist/remote_regress/**</exclude>
+            <exclude>src/bin/gpfdist/transform.h</exclude>
+            <exclude>src/bin/gpfdist/gpfdist_helper.h</exclude>
+            <exclude>src/bin/gpfdist/doc/init</exclude>
+            <exclude>src/bin/gpfdist/doc/start</exclude>
+            <exclude>src/bin/gpfdist/stress/stress.bash</exclude>
+            <exclude>src/bin/gpfdist/stress/query.bash</exclude>
+
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_english.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_turkish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_basque.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_russian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_catalan.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_spanish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_KOI8_R_russian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_indonesian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_italian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_finnish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_porter.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_romanian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/header.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_lithuanian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_dutch.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_nepali.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_danish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_swedish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_indonesian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_2_hungarian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_german.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_hindi.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_greek.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_french.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_irish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_hungarian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_armenian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/api.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_serbian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_french.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_2_romanian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_german.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_norwegian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_portuguese.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_danish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_swedish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_arabic.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_irish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_italian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_finnish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_porter.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_english.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_dutch.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_catalan.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_tamil.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_portuguese.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_spanish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_yiddish.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_UTF_8_norwegian.h</exclude>
+            <exclude>src/include/snowball/libstemmer/stem_ISO_8859_1_basque.h</exclude>
+
+            <exclude>src/backend/utils/mb/Unicode/*.map</exclude>
+
+            <exclude>src/interfaces/ecpg/test/ecpg_schedule</exclude>
+            <exclude>src/interfaces/ecpg/test/expected/**</exclude>
+            <exclude>src/interfaces/ecpg/test/**/*.pgc</exclude>
+            <exclude>src/interfaces/ecpg/test/regression.h</exclude>
+            <exclude>src/interfaces/ecpg/test/printf_hack.h</exclude>
+            <exclude>src/interfaces/ecpg/test/Makefile.regress</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/memory.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/ecpglib_extern.h</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/execute.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/exports.txt</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/typename.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/error.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/sqlda.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/prepare.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/connect.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/descriptor.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/nls.mk</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/data.c</exclude>
+            <exclude>src/interfaces/ecpg/ecpglib/misc.c</exclude>
+            <exclude>src/interfaces/ecpg/include/sqlda.h</exclude>
+            <exclude>src/interfaces/ecpg/include/ecpgerrno.h</exclude>
+            <exclude>src/interfaces/ecpg/include/ecpg-pthread-win32.h</exclude>
+            <exclude>src/interfaces/ecpg/include/sqlda-compat.h</exclude>
+            <exclude>src/interfaces/ecpg/include/sql3types.h</exclude>
+            <exclude>src/interfaces/ecpg/include/pgtypes_numeric.h</exclude>
+            <exclude>src/interfaces/ecpg/include/pgtypes_date.h</exclude>
+            <exclude>src/interfaces/ecpg/include/datetime.h</exclude>
+            <exclude>src/interfaces/ecpg/include/decimal.h</exclude>
+            <exclude>src/interfaces/ecpg/include/ecpgtype.h</exclude>
+            <exclude>src/interfaces/ecpg/include/pgtypes.h</exclude>
+            <exclude>src/interfaces/ecpg/include/ecpg_config.h.in</exclude>
+            <exclude>src/interfaces/ecpg/include/ecpglib.h</exclude>
+            <exclude>src/interfaces/ecpg/include/sqlda-native.h</exclude>
+            <exclude>src/interfaces/ecpg/include/pgtypes_error.h</exclude>
+            <exclude>src/interfaces/ecpg/include/sqltypes.h</exclude>
+            <exclude>src/interfaces/ecpg/include/pgtypes_interval.h</exclude>
+            <exclude>src/interfaces/ecpg/include/ecpg_informix.h</exclude>
+            <exclude>src/interfaces/ecpg/include/pgtypes_timestamp.h</exclude>
+            <exclude>src/interfaces/ecpg/include/sqlca.h</exclude>
+            <exclude>src/interfaces/ecpg/preproc/type.h</exclude>
+            <exclude>src/interfaces/ecpg/preproc/ecpg.tokens</exclude>
+            <exclude>src/interfaces/ecpg/preproc/ecpg.header</exclude>
+            <exclude>src/interfaces/ecpg/preproc/preproc_extern.h</exclude>
+            <exclude>src/interfaces/ecpg/preproc/ecpg_keywords.c</exclude>
+            <exclude>src/interfaces/ecpg/preproc/c_keywords.c</exclude>
+            <exclude>src/interfaces/ecpg/preproc/type.c</exclude>
+            <exclude>src/interfaces/ecpg/preproc/ecpg.addons</exclude>
+            <exclude>src/interfaces/ecpg/preproc/descriptor.c</exclude>
+            <exclude>src/interfaces/ecpg/preproc/README.parser</exclude>
+            <exclude>src/interfaces/ecpg/preproc/nls.mk</exclude>
+            <exclude>src/interfaces/ecpg/preproc/ecpg.trailer</exclude>
+            <exclude>src/interfaces/ecpg/preproc/output.c</exclude>
+            <exclude>src/interfaces/ecpg/preproc/ecpg.type</exclude>
+            <exclude>src/interfaces/ecpg/preproc/variable.c</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/common.c</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/interval.c</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/dt.h</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/timestamp.c</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/exports.txt</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/numeric.c</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/pgtypeslib_extern.h</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/dt_common.c</exclude>
+            <exclude>src/interfaces/ecpg/pgtypeslib/datetime.c</exclude>
+            <exclude>src/interfaces/ecpg/nls.mk</exclude>
+            <exclude>src/interfaces/ecpg/compatlib/informix.c</exclude>
+            <exclude>src/interfaces/ecpg/compatlib/exports.txt</exclude>
+
+            <exclude>src/bin/psql/psqlrc.sample</exclude>
+            <exclude>src/bin/psql/nls.mk</exclude>
+            <exclude>src/bin/pg_checksums/nls.mk</exclude>
+            <exclude>src/bin/pg_archivecleanup/pg_archivecleanup.c</exclude>
+            <exclude>src/bin/pg_archivecleanup/nls.mk</exclude>
+            <exclude>src/bin/pg_controldata/pg_controldata.c</exclude>
+            <exclude>src/bin/pg_controldata/nls.mk</exclude>
+            <exclude>src/bin/gpfts/fts_etcd.c</exclude>
+            <exclude>src/bin/gpfts/fts.h</exclude>
+            <exclude>src/bin/gpfts/config/cbdb_etcd_default.conf</exclude>
+            <exclude>src/bin/gpfts/fts_etcd.h</exclude>
+            <exclude>src/bin/gpfts/nls.mk</exclude>
+            <exclude>src/bin/gpfts/failover/docker_standby_check_back.sh</exclude>
+            <exclude>src/bin/gpfts/failover/segment_check_back.sh</exclude>
+            <exclude>src/bin/gpfts/failover/docker_master_check_back.sh</exclude>
+            <exclude>src/bin/gpfts/failover/docker_segment_check_back.sh</exclude>
+            <exclude>src/bin/gpfts/failover/master_check_back.sh</exclude>
+            <exclude>src/bin/gpfts/failover/segment_all_down.sh</exclude>
+            <exclude>src/bin/gpfts/failover/standby_check_back.sh</exclude>
+            <exclude>src/bin/pg_test_timing/pg_test_timing.c</exclude>
+            <exclude>src/bin/pg_test_timing/nls.mk</exclude>
+            <exclude>src/bin/scripts/nls.mk</exclude>
+            <exclude>src/bin/pg_upgrade/README.gpdb</exclude>
+            <exclude>src/bin/pg_upgrade/test_gpdb.sh</exclude>
+            <exclude>src/bin/pg_upgrade/TESTING</exclude>
+            <exclude>src/bin/pg_upgrade/IMPLEMENTATION</exclude>
+            <exclude>src/bin/pg_upgrade/greenplum/util.c</exclude>
+            <exclude>src/bin/pg_upgrade/greenplum/option_gp.c</exclude>
+            <exclude>src/bin/pg_upgrade/greenplum/controldata_gp.c</exclude>
+            <exclude>src/bin/pg_upgrade/nls.mk</exclude>
+            <exclude>src/bin/gpnetbench/gpnetbenchServer.c</exclude>
+            <exclude>src/bin/gpnetbench/gpnetbenchClient.c</exclude>
+            <exclude>src/bin/pg_ctl/nls.mk</exclude>
+            <exclude>src/bin/pg_resetwal/nls.mk</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_tar.c</exclude>
+            <exclude>src/bin/pg_dump/test/dumputils_test.c</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_custom.c</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_archiver.c</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_null.c</exclude>
+            <exclude>src/bin/pg_dump/dumputils_gp.c</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_db.c</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_tar.h</exclude>
+            <exclude>src/bin/pg_dump/pg_restore.c</exclude>
+            <exclude>src/bin/pg_dump/pg_backup.h</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_archiver.h</exclude>
+            <exclude>src/bin/pg_dump/nls.mk</exclude>
+            <exclude>src/bin/pg_dump/pg_backup_db.h</exclude>
+            <exclude>src/include/cdb/cdboidsync.h</exclude>
+            <exclude>src/include/cdb/cdbfts.h</exclude>
+            <exclude>src/include/cdb/cdbpq.h</exclude>
+            <exclude>src/include/cdb/cdbtm.h</exclude>
+            <exclude>src/include/access/rmgr.h</exclude>
+            <exclude>src/include/optimizer/walkers.h</exclude>
+            <exclude>src/include/nodes/plannerconfig.h</exclude>
+            <exclude>src/include/postmaster/backoff.h</exclude>
+            <exclude>src/include/postgres_ext.h</exclude>
+            <exclude>src/include/catalog/gp_version_at_initdb.dat.in</exclude>
+            <exclude>src/include/catalog/storage_database.h</exclude>
+            <exclude>src/include/catalog/README.modifying_catalogs</exclude>
+            <exclude>src/include/catalog/gp_version_at_initdb.h</exclude>
+            <exclude>src/include/catalog/storage_tablespace.h</exclude>
+            <exclude>src/include/catalog/li_extras.py</exclude>
+            <exclude>src/include/catalog/pg_resgroupcapability.h</exclude>
+            <exclude>src/include/catalog/pg_foreign_table_seg.h</exclude>
+            <exclude>src/include/catalog/pg_resgroup.h</exclude>
+            <exclude>src/include/pg_config_ext.h.in</exclude>
+            <exclude>src/include/utils/linux-ops.h</exclude>
+            <exclude>src/include/utils/process_shared_preload_libraries.h</exclude>
+            <exclude>src/include/utils/cash.h</exclude>
+            <exclude>src/include/utils/cgroup_io_limit.h</exclude>
+            <exclude>src/include/utils/sync_guc_name.h</exclude>
+            <exclude>src/include/utils/unsync_guc_name.h</exclude>
+            <exclude>src/include/utils/ps_status.h</exclude>
+            <exclude>src/include/regex/regerrs.h</exclude>
+            <exclude>src/include/common/pg_lzcompress.h</exclude>
+            <exclude>src/include/common/unicode_combining_table.h</exclude>
+            <exclude>src/include/common/unicode_normprops_table.h</exclude>
+            <exclude>src/include/fstream/fstream.h</exclude>
+            <exclude>src/include/fstream/gfile.h</exclude>
+            <exclude>src/include/gpopt/translate/COptColInfo.h</exclude>
+            <exclude>src/include/gpopt/translate/CGPDBAttOptCol.h</exclude>
+            <exclude>src/include/gpopt/utils/COptTasks.h</exclude>
+            <exclude>src/include/gpopt/.clang-format</exclude>
+            <exclude>src/include/pg_config.h.win32</exclude>
+            <exclude>src/include/task/bitstring.h</exclude>
+            <exclude>src/include/task/cron.h</exclude>
+            <exclude>src/include/task/pg_cron.h</exclude>
+            <exclude>src/include/task/task_states.h</exclude>
+            <exclude>src/include/task/job_metadata.h</exclude>
+            <exclude>src/include/libpq/hba.h</exclude>
+            <exclude>src/include/gppc/gppc_config.h</exclude>
+            <exclude>src/include/commands/extprotocolcmds.h</exclude>
+            <exclude>src/include/commands/user.h</exclude>
+            <exclude>src/include/port/netbsd.h</exclude>
+            <exclude>src/include/port/cygwin.h</exclude>
+            <exclude>src/include/port/linux.h</exclude>
+            <exclude>src/include/port/solaris.h</exclude>
+            <exclude>src/include/port/win32.h</exclude>
+            <exclude>src/include/port/hpux.h</exclude>
+            <exclude>src/include/port/pg_pthread.h</exclude>
+            <exclude>src/include/port/freebsd.h</exclude>
+            <exclude>src/include/port/darwin.h</exclude>
+            <exclude>src/include/port/win32/pwd.h</exclude>
+            <exclude>src/include/port/win32/arpa/inet.h</exclude>
+            <exclude>src/include/port/win32/netinet/in.h</exclude>
+            <exclude>src/include/port/win32/dlfcn.h</exclude>
+            <exclude>src/include/port/win32/sys/wait.h</exclude>
+            <exclude>src/include/port/win32/sys/mman.h</exclude>
+            <exclude>src/include/port/win32/sys/resource.h</exclude>
+            <exclude>src/include/port/win32/sys/socket.h</exclude>
+            <exclude>src/include/port/win32/grp.h</exclude>
+            <exclude>src/include/port/win32/netdb.h</exclude>
+            <exclude>src/include/port/aix.h</exclude>
+            <exclude>src/include/port/openbsd.h</exclude>
+            <exclude>src/include/port/win32_msvc/utime.h</exclude>
+            <exclude>src/include/port/win32_msvc/unistd.h</exclude>
+            <exclude>src/include/port/win32_msvc/dirent.h</exclude>
+            <exclude>src/include/port/win32_msvc/sys/time.h</exclude>
+            <exclude>src/include/port/win32_msvc/sys/file.h</exclude>
+            <exclude>src/include/port/win32_msvc/sys/param.h</exclude>
+            <exclude>src/template/hpux</exclude>
+            <exclude>src/template/netbsd</exclude>
+            <exclude>src/template/freebsd</exclude>
+            <exclude>src/template/osf</exclude>
+            <exclude>src/template/linux</exclude>
+            <exclude>src/template/openbsd</exclude>
+            <exclude>src/template/darwin</exclude>
+            <exclude>src/template/solaris</exclude>
+            <exclude>src/template/win32</exclude>
+            <exclude>src/template/cygwin</exclude>
+            <exclude>src/template/aix</exclude>
+            <exclude>src/backend/cdb/cdbdistributedxid.c</exclude>
+            <exclude>src/backend/cdb/test/cdbdistributedsnapshot_test.c</exclude>
+            <exclude>src/backend/cdb/test/cdbbufferedread_test.c</exclude>
+            <exclude>src/backend/cdb/test/cdbappendonlyxlog_test.c</exclude>
+            <exclude>src/backend/cdb/cdbdistributedxacts.c</exclude>
+            <exclude>src/backend/cdb/cdbpgdatabase.c</exclude>
+            <exclude>src/backend/cdb/dispatcher/test/cdbgang_test.c</exclude>
+            <exclude>src/backend/cdb/dispatcher/test/cdbdispatchresult_test.c</exclude>
+            <exclude>src/backend/cdb/dispatcher/cdbpq.c</exclude>
+            <exclude>src/backend/statistics/README.dependencies</exclude>
+            <exclude>src/backend/statistics/README.mcv</exclude>
+            <exclude>src/backend/crypto/ssl_passphrase.sh.sample</exclude>
+            <exclude>src/backend/crypto/ckey_piv_nopin.sh.sample</exclude>
+            <exclude>src/backend/crypto/ckey_piv_pin.sh.sample</exclude>
+            <exclude>src/backend/crypto/ckey_aws.sh.sample</exclude>
+            <exclude>src/backend/crypto/ckey_direct.sh.sample</exclude>
+            <exclude>src/backend/crypto/ckey_passphrase.sh.sample</exclude>
+            <exclude>src/backend/crypto/sm4_ofb.c</exclude>
+            <exclude>src/backend/common.mk</exclude>
+            <exclude>src/backend/access/transam/test/distributedlog_test.c</exclude>
+            <exclude>src/backend/access/transam/test/varsup_test.c</exclude>
+            <exclude>src/backend/access/transam/test/xlog_test.c</exclude>
+            <exclude>src/backend/access/transam/test/twophase_test.c</exclude>
+            <exclude>src/backend/access/transam/test/xact_test.c</exclude>
+            <exclude>src/backend/access/transam/gp_distributed_log.c</exclude>
+            <exclude>src/backend/access/transam/rmgr.c</exclude>
+            <exclude>src/backend/access/transam/README.parallel</exclude>
+            <exclude>src/backend/access/transam/gp_transaction_log.c</exclude>
+            <exclude>src/backend/access/aocs/test/aocsam_test.c</exclude>
+            <exclude>src/backend/access/rmgrdesc/test/xactdesc_test.c</exclude>
+            <exclude>src/backend/access/appendonly/test/aosegfiles_test.c</exclude>
+            <exclude>src/backend/access/appendonly/test/aomd_test.c</exclude>
+            <exclude>src/backend/access/appendonly/test/appendonly_visimap_entry_test.c</exclude>
+            <exclude>src/backend/access/appendonly/test/appendonly_visimap_test.c</exclude>
+            <exclude>src/backend/access/appendonly/test/aomd_filehandler_test.c</exclude>
+            <exclude>src/backend/access/heap/README.HOT</exclude>
+            <exclude>src/backend/access/heap/README.tuplock</exclude>
+            <exclude>src/backend/access/external/test/url_curl_test.c</exclude>
+            <exclude>src/backend/access/gin/test/ginpostinglist_fakes.c</exclude>
+            <exclude>src/backend/access/gin/test/ginpostinglist_test.c</exclude>
+            <exclude>src/backend/optimizer/README.cbdb.parallel</exclude>
+            <exclude>src/backend/optimizer/util/walkers.c</exclude>
+            <exclude>src/backend/optimizer/geqo/geqo_cx.c</exclude>
+            <exclude>src/backend/optimizer/geqo/geqo_erx.c</exclude>
+            <exclude>src/backend/optimizer/README.cbdb.aqumv</exclude>
+            <exclude>src/backend/optimizer/README.orca</exclude>
+            <exclude>src/backend/postmaster/test/syslogger_test.c</exclude>
+            <exclude>src/backend/postmaster/test/checkpointer_test.c</exclude>
+            <exclude>src/backend/postmaster/README.auto-ANALYZE</exclude>
+            <exclude>src/backend/mock.mk</exclude>
+            <exclude>src/backend/catalog/storage_tablespace.c</exclude>
+            <exclude>src/backend/catalog/test/storage_tablespace_test.c</exclude>
+            <exclude>src/backend/catalog/sql_features.txt</exclude>
+            <exclude>src/backend/catalog/storage_database.c</exclude>
+            <exclude>src/backend/catalog/sql_feature_packages.txt</exclude>
+            <exclude>src/backend/tcop/test/idle_resource_cleaner_test.c</exclude>
+            <exclude>src/backend/tcop/test/postgres_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/bitmap_compression_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/pg_mkdir_p_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/bitstream_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/ps_status_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/guc_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/faultinjector_warnings_test.c</exclude>
+            <exclude>src/backend/utils/misc/test/guc_gp_test.c</exclude>
+            <exclude>src/backend/utils/misc/fstream/gfile.c</exclude>
+            <exclude>src/backend/utils/misc/fstream/fstream.c</exclude>
+            <exclude>src/backend/utils/misc/postgresql.conf.sample</exclude>
+            <exclude>src/backend/utils/misc/check_guc</exclude>
+            <exclude>src/backend/utils/init/test/postinit_test.c</exclude>
+            <exclude>src/backend/utils/adt/pivot.c</exclude>
+            <exclude>src/backend/utils/adt/cash.c</exclude>
+            <exclude>src/backend/utils/adt/network.c</exclude>
+            <exclude>src/backend/utils/adt/gp_optimizer_functions.c</exclude>
+            <exclude>src/backend/utils/adt/gp_dump_oids.c</exclude>
+            <exclude>src/backend/utils/adt/matrix.c</exclude>
+            <exclude>src/backend/utils/gdd/test/gdddetector_test.c</exclude>
+            <exclude>src/backend/utils/cache/test/lsyscache_test.c</exclude>
+            <exclude>src/backend/utils/test/session_state_test.c</exclude>
+            <exclude>src/backend/utils/hash/test/dynahash_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/memprot_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/idle_tracker_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/runaway_cleaner_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/event_version_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/vmem_tracker_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/redzone_handler_test.c</exclude>
+            <exclude>src/backend/utils/mmgr/test/mcxt_test.c</exclude>
+            <exclude>src/backend/utils/fmgr/test/dfmgr_test.c</exclude>
+            <exclude>src/backend/utils/resgroup/io_limit_gram.y</exclude>
+            <exclude>src/backend/utils/resgroup/test/resgroup_test.c</exclude>
+            <exclude>src/backend/utils/resgroup/cgroup_io_limit.c</exclude>
+            <exclude>src/backend/utils/resgroup/io_limit_scanner.l</exclude>
+            <exclude>src/backend/utils/resgroup/cgroup.c</exclude>
+            <exclude>src/backend/utils/resource_manager/test/memquota_test.c</exclude>
+            <exclude>src/backend/utils/time/test/sharedsnapshot_test.c</exclude>
+            <exclude>src/backend/utils/datumstream/test/datumstreamblock_test.c</exclude>
+            <exclude>src/backend/utils/mb/win866.c</exclude>
+            <exclude>src/backend/utils/mb/Unicode/ISO10646-GB18030.TXT</exclude>
+            <exclude>src/backend/utils/mb/Unicode/gb-18030-2000.xml</exclude>
+            <exclude>src/backend/utils/mb/Unicode/sjis-0213-2004-std.txt</exclude>
+            <exclude>src/backend/utils/mb/Unicode/euc-jis-2004-std.txt</exclude>
+            <exclude>src/backend/utils/mb/win1251.c</exclude>
+            <exclude>src/backend/utils/mb/iso.c</exclude>
+            <exclude>src/backend/utils/mb/conversion_procs/proc.mk</exclude>
+            <exclude>src/backend/utils/mb/conversion_procs/euc_tw_and_big5/big5.c</exclude>
+            <exclude>src/backend/utils/mb/conversion_procs/euc_jp_and_sjis/sjis.map</exclude>
+            <exclude>src/backend/utils/README.Gen_dummy_probes</exclude>
+            <exclude>src/backend/regex/regc_locale.c</exclude>
+            <exclude>src/backend/storage/lmgr/test/lock_test.c</exclude>
+            <exclude>src/backend/storage/lmgr/README.barrier</exclude>
+            <exclude>src/backend/storage/lmgr/lwlocknames.txt</exclude>
+            <exclude>src/backend/storage/lmgr/README-SSI</exclude>
+            <exclude>src/backend/storage/ipc/test/procarray_test.c</exclude>
+            <exclude>src/backend/fts/test/ftsmessagehandler_test.c</exclude>
+            <exclude>src/backend/snowball/stopwords/danish.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/italian.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/dutch.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/english.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/portuguese.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/norwegian.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/spanish.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/german.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/turkish.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/finnish.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/french.stop</exclude>
+            <exclude>src/backend/snowball/stopwords/hungarian.stop</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_german.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_french.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_serbian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_2_romanian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/api.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_arabic.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_irish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_swedish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_danish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_portuguese.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_norwegian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_porter.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_finnish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_italian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_basque.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_norwegian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_yiddish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_tamil.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_spanish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_portuguese.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_dutch.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_english.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_catalan.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_indonesian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_KOI8_R_russian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_spanish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_basque.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_turkish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_russian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_english.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_catalan.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_dutch.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_lithuanian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_porter.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_finnish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_italian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_romanian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/utilities.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_2_hungarian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_indonesian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_swedish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_danish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_nepali.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_armenian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_hungarian.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_hindi.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_irish.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_ISO_8859_1_french.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_greek.c</exclude>
+            <exclude>src/backend/snowball/libstemmer/stem_UTF_8_german.c</exclude>
+            <exclude>src/backend/gpopt/gpopt.mk</exclude>
+            <exclude>src/backend/gpopt/utils/COptTasks.cpp</exclude>
+            <exclude>src/backend/gpopt/utils/funcs.cpp</exclude>
+            <exclude>src/backend/gpopt/.clang-format</exclude>
+            <exclude>src/backend/task/task_states.c</exclude>
+            <exclude>src/backend/task/job_metadata.c</exclude>
+            <exclude>src/backend/task/pg_cron.c</exclude>
+            <exclude>src/backend/task/misc.c</exclude>
+            <exclude>src/backend/task/entry.c</exclude>
+            <exclude>src/backend/libpq/test/auth_test.c</exclude>
+            <exclude>src/backend/libpq/test/pqcomm_test.c</exclude>
+            <exclude>src/backend/libpq/pg_ident.conf.sample</exclude>
+            <exclude>src/backend/libpq/README.SSL</exclude>
+            <exclude>src/backend/libpq/pg_hba.conf.sample</exclude>
+            <exclude>src/backend/executor/test/instrument_test.c</exclude>
+            <exclude>src/backend/executor/README.tuples</exclude>
+            <exclude>src/backend/replication/test/gp_replication_test.c</exclude>
+            <exclude>src/backend/commands/test/tablecmds_test.c</exclude>
+            <exclude>src/backend/commands/analyzefuncs.c</exclude>
+            <exclude>src/backend/port/hpux/tas.c.template</exclude>
+            <exclude>src/backend/port/tas/hpux_hppa.s</exclude>
+            <exclude>src/backend/port/tas/dummy.s</exclude>
+            <exclude>src/backend/port/aix/mkldexport.sh</exclude>
+            <exclude>src/backend/nls.mk</exclude>
+            <exclude>src/backend/tsearch/dicts/hunspell_sample_long.dict</exclude>
+            <exclude>src/backend/tsearch/dicts/hunspell_sample_num.affix</exclude>
+            <exclude>src/backend/tsearch/dicts/thesaurus_sample.ths</exclude>
+            <exclude>src/backend/tsearch/dicts/ispell_sample.dict</exclude>
+            <exclude>src/backend/tsearch/dicts/ispell_sample.affix</exclude>
+            <exclude>src/backend/tsearch/dicts/hunspell_sample_num.dict</exclude>
+            <exclude>src/backend/tsearch/dicts/hunspell_sample.affix</exclude>
+            <exclude>src/backend/tsearch/dicts/hunspell_sample_long.affix</exclude>
+            <exclude>src/backend/tsearch/dicts/synonym_sample.syn</exclude>
+            <exclude>src/makefiles/Makefile.cygwin</exclude>
+            <exclude>src/makefiles/pgxs.mk</exclude>
+            <exclude>src/makefiles/Makefile.linux</exclude>
+            <exclude>src/makefiles/Makefile.solaris</exclude>
+            <exclude>src/makefiles/Makefile.darwin</exclude>
+            <exclude>src/makefiles/Makefile.hpux</exclude>
+            <exclude>src/makefiles/Makefile.openbsd</exclude>
+            <exclude>src/makefiles/Makefile.aix</exclude>
+            <exclude>src/makefiles/Makefile.freebsd</exclude>
+            <exclude>src/makefiles/Makefile.netbsd</exclude>
+            <exclude>src/fe_utils/log.c</exclude>
+            <exclude>src/fe_utils/test/print_test.c</exclude>
+            <exclude>src/common/sm3.c</exclude>
+            <exclude>src/common/digit_table.h</exclude>
+            <exclude>src/common/etcdutils.c</exclude>
+            <exclude>src/nls-global.mk</exclude>
+            <exclude>src/port/qsort_arg.c</exclude>
+            <exclude>src/port/qsort.c</exclude>
+            <exclude>src/port/tar.c</exclude>
+            <exclude>src/port/pthread-win32.h</exclude>
+            <exclude>src/interfaces/ecpg/README.dynSQL</exclude>
+            <exclude>src/interfaces/ecpg/test/preproc/struct.h</exclude>
+            <exclude>src/interfaces/ecpg/test/preproc/strings.h</exclude>
+            <exclude>src/interfaces/libpq/test/regress.in</exclude>
+            <exclude>src/interfaces/libpq/pg_service.conf.sample</exclude>
+            <exclude>src/interfaces/libpq/win32.h</exclude>
+            <exclude>src/interfaces/libpq/exports.txt</exclude>
+            <exclude>src/interfaces/libpq/nls.mk</exclude>
+            <exclude>src/interfaces/gppc/test/tabfunc_gppc_demo.c</exclude>
+            <exclude>src/DEVELOPERS</exclude>
+
+            <exclude>Makefile</exclude>
+            <exclude>.gitmessage</exclude>
+            <exclude>aclocal.m4</exclude>
+            <exclude>python-dependencies.txt</exclude>
+
+            <!-- Finally we exclude a few file types (based on
+                 extension) for which comments are tough to
+                 maintain. Note that this is a combination of files
+                 licensed to ASF and files that came from PostgreSQL
+                 and other projects (under compatible licenses).
+                 You may need to engage in software archaeology to
+                 find out the origins of these.
+            -->
+
+            <exclude>**/*.gif</exclude>
+            <exclude>**/*.md</exclude>
+            <exclude>**/*.json</exclude>
+            <exclude>**/*.sql</exclude>
+            <exclude>**/*.out</exclude>
+            <exclude>**/Thumbs.db</exclude>
+
+            <!-- Exclude GPL-licensed archive that will be removed -->
+            <exclude>gpMgmt/bin/pythonSrc/ext/pylint-0.21.0.tar.gz</exclude>
+
+          </excludes>
+
+          <!--
+              Note: RAT plugin parameters 'licenses' and 'licenseFamilies' are deprecated in 0.16.1.
+              We are using these to maintain compatibility with Apache HAWQ-style license family matching.
+              Will revisit and migrate when Apache RAT 0.17.0+ becomes stable and documented.
+          -->
+
+          <licenses>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>PostgreSQL License</licenseFamilyName>
+              <licenseFamilyCategory>PGSQL</licenseFamilyCategory>
+              <patterns>
+                <pattern>PostgreSQL Global Development Group</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>PostgreSQL License (NIPPON TELEGRAPH AND TELEPHONE CORPORATION-derived)</licenseFamilyName>
+              <licenseFamilyCategory>NIPL</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright (c) 2012-2020, NIPPON TELEGRAPH AND TELEPHONE CORPORATION</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Apache License (EMC-derived)</licenseFamilyName>
+              <licenseFamilyCategory>EMC</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright 2012 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2008 - 2011 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2009 - 2011 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2009 - 2012 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2010-2011 EMC Corp.</pattern>
+                <pattern>Copyright 2011 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2011 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2012 EMC Corp.</pattern>
+                <pattern>Copyright 2013 EMC Corp.</pattern>
+                <pattern>Copyright (C) 2013 EMC Corp.</pattern>
+                <pattern>Copyright (c) EMC Inc 2010. All Rights Reserved.</pattern>
+                <pattern>Copyright (c) 2010-2011 EMC Corporation.  All Rights Reserved</pattern>
+                <pattern>This software is protected, without limitation, by copyright law</pattern>
+                <pattern>License Agreement under which it is provided by or on behalf of EMC</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Apache License (VMware-derived)</licenseFamilyName>
+              <licenseFamilyCategory>VMW</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright 2021 VMware, Inc.</pattern>
+                <pattern>Copyright (c) 2004-2015 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2012-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2013-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (C) 2013 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (C) 2014, VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright 2014 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2014, VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (C) 2015 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Portions Copyright 2016 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Portions Copyright (C) 2020-Present VMware, Inc.</pattern>
+                <pattern>Copyright (C) 2016 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2017, VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2018, VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright 2018 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2019 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (C) 2019 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2014-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2016-Present VMware, Inc. or its affiliates</pattern>
+                <pattern>Copyright (c) 2016-Present, VMware, Inc. or its affiliates</pattern>
+                <pattern>Copyright (c) 2017-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2018-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2019-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2020-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2021-Present VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) 2020 VMware, Inc.</pattern>
+                <pattern>Copyright (C) 2020 VMware, Inc.</pattern>
+                <pattern>Copyright (c) 2020 VMware and affiliates, Inc.</pattern>
+                <pattern>Copyright (C) 2022 VMware, Inc.</pattern>
+                <pattern>Copyright 2022 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright 2023 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (C) 2023 VMware, Inc.</pattern>
+                <pattern>Copyright (C) 2024 VMware, Inc.</pattern>
+                <pattern>Copyright 2024 VMware, Inc. or its affiliates.</pattern>
+                <pattern>Copyright (c) EMC/Greenplum Inc 2011. All Rights Reserved. </pattern>
+                <pattern>Copyright (c) 2015 VMware, Inc. or its affiliates. All Rights Reserved</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Apache License (Broadcom-derived)</licenseFamilyName>
+              <licenseFamilyCategory>BRDC</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright (C) 2024 VMware by Broadcom.</pattern>
+                <pattern>Copyright (C) 2024 Broadcom</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Apache License (Greenplum-derived)</licenseFamilyName>
+              <licenseFamilyCategory>GRPM</licenseFamilyCategory>
+              <patterns>
+                <pattern>Portions Copyright (c) 2007-2010, Greenplum inc</pattern>
+                <pattern>Copyright (C) 2008-2011 Greenplum, Inc.</pattern>
+                <pattern>Copyright 2009-2010, Greenplum Inc. All rights reserved.</pattern>
+                <pattern>Copyright (C) 2009-2011 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2008 - 2010 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2009 - 2010 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2008 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2008, 2009 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2009 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2010 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2011 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2012 Greenplum, Inc.</pattern>
+                <pattern>Copyright (C) 2013 Greenplum, Inc.</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2008. All Rights Reserved.</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2009. All Rights Reserved.</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2010. All Rights Reserved.</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2011. All Rights Reserved.</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2012. All Rights Reserved.</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2013. All Rights Reserved.</pattern>
+                <pattern>Copyright (C) 2017 Greenplum, Inc.</pattern>
+                <pattern>Copyright (c) 2007 Greenplum Inc</pattern>
+                <pattern>Copyright (c) 2010, Greenplum Software</pattern>
+                <pattern>Copyright (c) Greenplum Inc 2010</pattern>
+                <pattern>Copyright (c) Metapa 2005. All Rights Reserved.</pattern>
+                <pattern>Copyright Greenplum 2008</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Apache License (Pivotal-derived)</licenseFamilyName>
+              <licenseFamilyCategory>PVTL</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright Pivotal 2014</pattern>
+                <pattern>Copyright (C) 2019 Pivotal</pattern>
+                <pattern>Copyright (c) 2014 Pivotal inc.</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Citus Permissive</licenseFamilyName>
+              <licenseFamilyCategory>CITUS</licenseFamilyCategory>
+              <patterns>
+                <pattern>Permission to use, copy, modify, and distribute this software and its documentation for any purpose</pattern>
+                <pattern>IN NO EVENT SHALL CITUS DATA BE LIABLE</pattern>
+                <pattern>CITUS DATA SPECIFICALLY DISCLAIMS ANY WARRANTIES</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>STREAM Benchmark License</licenseFamilyName>
+              <licenseFamilyCategory>STREAM</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright 1991-2003: John D. McCalpin</pattern>
+                <pattern>You are free to use this program and/or to redistribute</pattern>
+                <pattern>STREAM Run Rules</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Artistic License 1.0</licenseFamilyName>
+              <licenseFamilyCategory>ARTISTIC</licenseFamilyCategory>
+              <patterns>
+                <pattern>This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself</pattern>
+                <pattern>The "Artistic License"</pattern>
+                <pattern>THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>ISC License</licenseFamilyName>
+              <licenseFamilyCategory>ISC</licenseFamilyCategory>
+              <patterns>
+                <pattern>Permission to use, copy, modify, and distribute this software for any purpose</pattern>
+                <pattern>THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Apache Compatible (PhiloSoft Design-derived)</licenseFamilyName>
+              <licenseFamilyCategory>CAT-A</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright (C) 1998 PhiloSoft Design</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Zero Clause BSD</licenseFamilyName>
+              <licenseFamilyCategory>CTYPE</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright (C) 1998 PhiloSoft Design</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>0BSD License (Pavel Stehule)</licenseFamilyName>
+              <licenseFamilyCategory>0BSD</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright (C) 2008-2023 by Pavel Stehule</pattern>
+                <pattern>Permission to use, copy, modify, and/or distribute this software for any purpose</pattern>
+                <pattern>with or without fee is hereby granted.</pattern>
+                <pattern>THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>MIT (RXI-derived)</licenseFamilyName>
+              <licenseFamilyCategory>RXI</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copyright (c) 2015 rxi</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>BSD-3-Clause</licenseFamilyName>
+              <licenseFamilyCategory>BSD3</licenseFamilyCategory>
+              <patterns>
+                <pattern>Redistribution and use in source and binary forms, with or without modification, are permitted</pattern>
+                <pattern>Neither the name of the University nor the names of its contributors may be used to endorse or promote products</pattern>
+                <pattern>THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS''</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>PyGreSQL BSD-style</licenseFamilyName>
+              <licenseFamilyCategory>BSD</licenseFamilyCategory>
+              <patterns>
+                <pattern>Permission to use, copy, modify, and distribute this software and its documentation for any purpose</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Autoconf Archive License</licenseFamilyName>
+              <licenseFamilyCategory>AUTO</licenseFamilyCategory>
+              <patterns>
+                <pattern>Copying and distribution of this file, with or without modification, are permitted in any medium</pattern>
+                <pattern>provided the copyright notice and this notice are preserved</pattern>
+                <pattern>This file is offered as-is, without any warranty</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>Autoconf GPLv3 + Exception</licenseFamilyName>
+              <licenseFamilyCategory>EX1</licenseFamilyCategory>
+              <patterns>
+                <pattern>Under Section 7 of GPL version 3, you are granted additional</pattern>
+                <pattern>This file is part of Autoconf.  This program is free</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>GPLv3+Autoconf Exception</licenseFamilyName>
+              <licenseFamilyCategory>EX2</licenseFamilyCategory>
+              <patterns>
+                <pattern>As a special exception to the GNU General Public License</pattern>
+                <pattern>you may include it under the same distribution terms</pattern>
+                <pattern>This Exception is an additional permission under section 7 of the GNU General Public License</pattern>
+              </patterns>
+            </license>
+
+            <license implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
+              <licenseFamilyName>MIT/X11 License (X Consortium)</licenseFamilyName>
+              <licenseFamilyCategory>MIT-INSTALL</licenseFamilyCategory>
+              <patterns>
+                <pattern># Permission is hereby granted, free of charge, to any person obtaining a copy</pattern>
+                <pattern># THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND</pattern>
+                <pattern># Except as contained in this notice, the name of the X Consortium</pattern>
+              </patterns>
+            </license>
+
+          </licenses>
+
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
