@@ -344,6 +344,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          submodules: true
 
       - name: Checkout CI Build/Test Scripts
         if: needs.check-skip.outputs.should_skip != 'true'
@@ -426,11 +427,6 @@ jobs:
           SRC_DIR: ${{ github.workspace }}
         run: |
           set -eo pipefail
-
-          if ! time su - gpadmin -c "cd ${SRC_DIR} && git submodule update --init"; then
-            echo "::error::Fail to pull submodule."
-            exit 1
-          fi
 
           chmod +x "${SRC_DIR}"/../cloudberry-devops-release/build_automation/cloudberry/scripts/build-cloudberry.sh
           if ! time su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ${SRC_DIR}/../cloudberry-devops-release/build_automation/cloudberry/scripts/build-cloudberry.sh"; then
