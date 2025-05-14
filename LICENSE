@@ -342,8 +342,7 @@ The Greenplum Database software includes:
 ================================================================================
 PostgreSQL-style license
 
-   gpMgmt/bin/pythonSrc/PyGreSQL-4.0: 
-
+   gpMgmt/bin/pythonSrc/ext/PyGreSQL-5.2.tar.gz
    see licenses/LICENSE-pygresql.txt
 
 ================================================================================

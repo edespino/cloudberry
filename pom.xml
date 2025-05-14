@@ -181,13 +181,6 @@ code or new licensing patterns.
             <exclude>gpMgmt/bin/gpload_test/gpload2/*.ans</exclude>
             <exclude>gpMgmt/bin/gpload_test/gpload2/data/**</exclude>
 
-            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL/CMakeLists.txt</exclude>
-            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/tutorial/**</exclude>
-            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/pg.py</exclude>
-            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/docs/**</exclude>
-            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/setup.py</exclude>
-            <exclude>gpMgmt/bin/pythonSrc/PyGreSQL-4.0/pgdb.py</exclude>
-
             <exclude>gpMgmt/bin/gpdemo</exclude>
             <exclude>gpMgmt/bin/gpcheckperf</exclude>
             <exclude>gpMgmt/bin/test/gpinitsystem_test.bash</exclude>
