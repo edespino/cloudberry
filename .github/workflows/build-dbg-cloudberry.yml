@@ -1160,6 +1160,9 @@ jobs:
       - name: Setup debug session
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         run: |
+          # Install tmate
+          sudo dnf install --enablerepo=epel -y -d0 tmate
+
           # Start tmate
           tmate -S /tmp/tmate.sock new-session -d
           tmate -S /tmp/tmate.sock wait tmate-ready
