@@ -1145,32 +1145,6 @@ jobs:
             du -sh "${SRC_DIR}/../cloudberry"
           } 2>&1 | tee -a build-logs/details/source-extraction.log
 
-      - name: Setup debug session
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        run: |
-          # Install tmate
-          sudo dnf install --enablerepo=epel -y -d0 tmate
-
-          # Start tmate
-          tmate -S /tmp/tmate.sock new-session -d
-          tmate -S /tmp/tmate.sock wait tmate-ready
-
-          # Display connection information
-          echo "::group::Debug Session Information"
-          echo "SSH: $(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')"
-          echo "Web URL: $(tmate -S /tmp/tmate.sock display -p '#{tmate_web}')"
-          echo "To exit debug session and continue workflow: type 'exit' in the session"
-          echo "::endgroup::"
-
-          # Keep session alive until exit or control file
-          while true; do
-            sleep 5
-            if ! tmate -S /tmp/tmate.sock has-session; then
-              echo "Debug session ended, continuing workflow..."
-              exit 0
-            fi
-          done
-
       - name: Create Apache Cloudberry demo cluster
         if: success() && needs.check-skip.outputs.should_skip != 'true'
         env:
@@ -1227,6 +1201,29 @@ jobs:
           echo "=== Starting test execution for ${{ matrix.test }} ==="
           echo "Number of configurations to execute: ${#configs[@]}"
           echo ""
+
+          # Install tmate
+          sudo dnf install --enablerepo=epel -y -d0 tmate
+
+          # Start tmate
+          tmate -S /tmp/tmate.sock new-session -d
+          tmate -S /tmp/tmate.sock wait tmate-ready
+
+          # Display connection information
+          echo "::group::Debug Session Information"
+          echo "SSH: $(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')"
+          echo "Web URL: $(tmate -S /tmp/tmate.sock display -p '#{tmate_web}')"
+          echo "To exit debug session and continue workflow: type 'exit' in the session"
+          echo "::endgroup::"
+
+          # Keep session alive until exit or control file
+          while true; do
+            sleep 5
+            if ! tmate -S /tmp/tmate.sock has-session; then
+              echo "Debug session ended, continuing workflow..."
+              break
+            fi
+          done
 
           # Execute each config separately
           for ((i=0; i<${#configs[@]}; i++)); do
