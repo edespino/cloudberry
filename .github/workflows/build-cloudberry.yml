@@ -887,6 +887,7 @@ jobs:
         --ulimit core=-1
         --cgroupns=host
         -v /sys/fs/cgroup:/sys/fs/cgroup:rw
+        --storage-opt size=20G
 
     steps:
       - name: Skip Check
