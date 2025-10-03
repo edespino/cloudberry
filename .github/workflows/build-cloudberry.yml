@@ -1256,11 +1256,50 @@ jobs:
           (github.event.inputs.enable_debug_shell == 'true' ||
            contains(github.event.pull_request.labels.*.name, 'ci:debug')) &&
           needs.check-skip.outputs.should_skip != 'true'
-        uses: mxschmitt/action-tmate@v3
         timeout-minutes: ${{ fromJSON(github.event.inputs.debug_timeout_minutes || '30') }}
-        with:
-          limit-access-to-actor: true
-          detached: false
+        shell: bash
+        run: |
+          set -eux
+
+          echo "=== Installing tmate for Rocky Linux 9 ==="
+          dnf install -y tmate
+
+          echo "=== Starting tmate session ==="
+          echo "Session will timeout after ${{ github.event.inputs.debug_timeout_minutes || '30' }} minutes"
+          echo "WARNING: tmate session will be publicly accessible via the connection string below"
+          echo "Only share the connection details with trusted users"
+          echo ""
+
+          # Generate SSH key if not exists
+          mkdir -p ~/.ssh
+          if [ ! -f ~/.ssh/id_rsa ]; then
+            ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+          fi
+
+          # Start tmate and display connection info
+          echo "=== Tmate Connection Details ==="
+          tmate -F &
+          TMATE_PID=$!
+
+          # Wait for tmate to initialize and get connection string
+          sleep 5
+
+          # Display connection strings
+          tmate display -p '#{tmate_ssh}' || true
+          tmate display -p '#{tmate_web}' || true
+
+          echo ""
+          echo "=== Ready for Connection ==="
+          echo "Once connected, run the following commands:"
+          echo "  su - gpadmin"
+          echo "  cd \${SRC_DIR}"
+          echo "  source /usr/local/cloudberry-db/greenplum_path.sh"
+          echo "  source gpAux/gpdemo/gpdemo-env.sh"
+          echo ""
+          echo "Press Ctrl+C in this session or 'exit' in tmate to continue the workflow"
+
+          # Keep session alive
+          wait $TMATE_PID
 
       - name: "Run Tests: ${{ matrix.test }}"
         if: success() && needs.check-skip.outputs.should_skip != 'true'
