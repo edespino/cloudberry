@@ -113,6 +113,16 @@ on:
         required: false
         default: 'all'
         type: string
+      enable_debug_shell:
+        description: 'Enable interactive debug shell (tmate) before running tests'
+        required: false
+        default: false
+        type: boolean
+      debug_timeout_minutes:
+        description: 'Debug shell timeout in minutes (default: 30, max: 360)'
+        required: false
+        default: '30'
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -1240,6 +1250,17 @@ jobs:
             fi
 
           } 2>&1 | tee -a build-logs/details/create-cloudberry-demo-cluster.log
+
+      - name: Setup debug shell (tmate)
+        if: |
+          (github.event.inputs.enable_debug_shell == 'true' ||
+           contains(github.event.pull_request.labels.*.name, 'ci:debug')) &&
+          needs.check-skip.outputs.should_skip != 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: ${{ fromJSON(github.event.inputs.debug_timeout_minutes || '30') }}
+        with:
+          limit-access-to-actor: true
+          detached: false
 
       - name: "Run Tests: ${{ matrix.test }}"
         if: success() && needs.check-skip.outputs.should_skip != 'true'
