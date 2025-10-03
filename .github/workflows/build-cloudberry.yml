@@ -824,12 +824,17 @@ jobs:
             echo "Version: ${RPM_VERSION}"
             echo "Release: ${RPM_RELEASE}"
 
+            # Refresh repository metadata to avoid mirror issues
+            echo "Refreshing repository metadata..."
+            dnf clean all
+            dnf makecache --refresh || dnf makecache
+
             # Clean install location
             rm -rf /usr/local/cloudberry-db
 
-            # Install RPM
+            # Install RPM with retry logic for mirror issues
             echo "Starting installation..."
-            if ! time dnf install -y "${RPM_FILE}"; then
+            if ! time dnf install -y --setopt=retries=10 "${RPM_FILE}"; then
               echo "::error::RPM installation failed"
               exit 1
             fi
@@ -1196,12 +1201,17 @@ jobs:
             echo "Version: ${RPM_VERSION}"
             echo "Release: ${RPM_RELEASE}"
 
+            # Refresh repository metadata to avoid mirror issues
+            echo "Refreshing repository metadata..."
+            dnf clean all
+            dnf makecache --refresh || dnf makecache
+
             # Clean install location
             rm -rf /usr/local/cloudberry-db
 
-            # Install RPM
+            # Install RPM with retry logic for mirror issues
             echo "Starting installation..."
-            if ! time dnf install -y "${RPM_FILE}"; then
+            if ! time dnf install -y --setopt=retries=10 "${RPM_FILE}"; then
               echo "::error::RPM installation failed"
               exit 1
             fi
