@@ -881,7 +881,7 @@ jobs:
       matrix: ${{ fromJson(needs.prepare-test-matrix.outputs.test-matrix) }}
 
     container:
-      image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
+      image: apache/incubator-cloudberry:cbdb-test-rocky9-latest
       options: >-
         --privileged
         --user root
