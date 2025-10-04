@@ -1323,7 +1323,7 @@ jobs:
         if: success() && needs.check-skip.outputs.should_skip != 'true'
         run: |
           echo "Installing required test utilities..."
-          dnf install -y diffutils
+          dnf install -y diffutils openssl-devel
 
       - name: Create Apache Cloudberry demo cluster
         if: success() && needs.check-skip.outputs.should_skip != 'true'
