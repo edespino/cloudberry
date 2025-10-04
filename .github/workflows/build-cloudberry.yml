@@ -1287,7 +1287,6 @@ jobs:
             # Remove compiled object files and libraries from source tree (~100-500MB)
             echo "Removing object files and libraries from source tree..."
             find /__w/cloudberry/cloudberry -name "*.o" -type f -delete 2>/dev/null || true
-            find /__w/cloudberry/cloudberry -name "*.so" -type f -delete 2>/dev/null || true
 
             # Remove git repository (~66MB) - tests run from extracted tarball, not git checkout
             rm -rf /__w/cloudberry/cloudberry/.git
