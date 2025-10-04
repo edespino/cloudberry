@@ -814,12 +814,17 @@ jobs:
             echo "Version: ${RPM_VERSION}"
             echo "Release: ${RPM_RELEASE}"
 
+            # Refresh repository metadata to avoid mirror issues
+            echo "Refreshing repository metadata..."
+            dnf clean all
+            dnf makecache --refresh || dnf makecache
+
             # Clean install location
             rm -rf /usr/local/cloudberry-db
 
-            # Install RPM
+            # Install RPM with retry logic for mirror issues
             echo "Starting installation..."
-            if ! time dnf install -y "${RPM_FILE}"; then
+            if ! time dnf install -y --setopt=retries=10 "${RPM_FILE}"; then
               echo "::error::RPM installation failed"
               exit 1
             fi
@@ -1186,12 +1191,17 @@ jobs:
             echo "Version: ${RPM_VERSION}"
             echo "Release: ${RPM_RELEASE}"
 
+            # Refresh repository metadata to avoid mirror issues
+            echo "Refreshing repository metadata..."
+            dnf clean all
+            dnf makecache --refresh || dnf makecache
+
             # Clean install location
             rm -rf /usr/local/cloudberry-db
 
-            # Install RPM
+            # Install RPM with retry logic for mirror issues
             echo "Starting installation..."
-            if ! time dnf install -y "${RPM_FILE}"; then
+            if ! time dnf install -y --setopt=retries=10 "${RPM_FILE}"; then
               echo "::error::RPM installation failed"
               exit 1
             fi
@@ -1224,6 +1234,62 @@ jobs:
             echo "Directory size:"
             du -sh "${SRC_DIR}/../cloudberry"
           } 2>&1 | tee -a build-logs/details/source-extraction.log
+
+      - name: Free up disk space
+        if: success() && needs.check-skip.outputs.should_skip != 'true'
+        run: |
+          set -eo pipefail
+
+          {
+            echo "=== Disk Cleanup Log ==="
+            echo "Timestamp: $(date -u)"
+            echo ""
+            echo "Disk usage before cleanup:"
+            df -h /
+            echo ""
+
+            # Remove build dependencies not needed for tests
+            echo "Removing unnecessary packages and files..."
+
+            # Remove Xerces-C (XML parser library, ~50MB)
+            rm -rf /usr/local/xerces-c
+
+            # Remove Go (if present, ~100-200MB)
+            rm -rf /usr/local/go*
+
+            # Remove Python source dependencies (~26MB)
+            rm -rf /__w/cloudberry/cloudberry/gpMgmt/bin/pythonSrc
+
+            # Clean package manager caches (~100-200MB)
+            dnf clean all
+            rm -rf /var/cache/dnf/*
+            rm -rf /var/cache/yum/*
+
+            # Remove documentation (~200-400MB)
+            rm -rf /usr/share/man/*
+            rm -rf /usr/share/doc/*
+            rm -rf /usr/share/info/*
+
+            # Remove build artifacts after RPM installation (~300MB)
+            rm -rf /__w/cloudberry/cloudberry/source_build_artifacts
+            rm -rf /__w/cloudberry/cloudberry/rpm_build_artifacts
+
+            # Remove compiled object files and libraries from source tree (~100-500MB)
+            echo "Removing object files and libraries from source tree..."
+            find /__w/cloudberry/cloudberry -name "*.o" -type f -delete 2>/dev/null || true
+
+            # Remove git repository (~66MB) - tests run from extracted tarball, not git checkout
+            rm -rf /__w/cloudberry/cloudberry/.git
+
+            # Remove locale files except en_US (~50-100MB)
+            find /usr/share/locale -mindepth 1 -maxdepth 1 ! -name 'en_US' -exec rm -rf {} + 2>/dev/null || true
+
+            echo ""
+            echo "Disk usage after cleanup:"
+            df -h /
+            echo ""
+            echo "Space freed up for test execution"
+          } 2>&1 | tee -a build-logs/details/disk-cleanup.log
 
       - name: Create Apache Cloudberry demo cluster
         if: success() && needs.check-skip.outputs.should_skip != 'true'
