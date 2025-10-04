@@ -1301,6 +1301,12 @@ jobs:
             echo "Space freed up for test execution"
           } 2>&1 | tee -a build-logs/details/disk-cleanup.log
 
+      - name: Install test dependencies
+        if: success() && needs.check-skip.outputs.should_skip != 'true'
+        run: |
+          echo "Installing required test utilities..."
+          dnf install -y diffutils
+
       - name: Create Apache Cloudberry demo cluster
         if: success() && needs.check-skip.outputs.should_skip != 'true'
         env:
