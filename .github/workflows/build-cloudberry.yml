@@ -903,7 +903,7 @@ jobs:
       matrix: ${{ fromJson(needs.prepare-test-matrix.outputs.test-matrix) }}
 
     container:
-      image: apache/incubator-cloudberry:cbdb-test-rocky9-latest
+      image: apache/incubator-cloudberry:cbdb-build-rocky9-latest
       options: >-
         --privileged
         --user root
@@ -1322,12 +1322,6 @@ jobs:
             echo ""
             echo "Space freed up for test execution"
           } 2>&1 | tee -a build-logs/details/disk-cleanup.log
-
-      - name: Install test dependencies
-        if: success() && needs.check-skip.outputs.should_skip != 'true'
-        run: |
-          echo "Installing required test utilities..."
-          dnf install -y diffutils openssl-devel
 
       - name: Create Apache Cloudberry demo cluster
         if: success() && needs.check-skip.outputs.should_skip != 'true'
