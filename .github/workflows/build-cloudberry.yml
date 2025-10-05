@@ -109,7 +109,7 @@ on:
   workflow_dispatch:
     inputs:
       test_selection:
-        description: 'Select tests to run (comma-separated). Examples: ic-good-opt-off,ic-contrib'
+        description: 'Select tests to run (comma-separated). Examples: ic-small-opt-off,ic-cbdb-opt-on,ic-contrib'
         required: false
         default: 'all'
         type: string
@@ -237,12 +237,20 @@ jobs:
           # Define base test configurations
           ALL_TESTS='{
             "include": [
-              {"test":"ic-good-opt-off",
-               "make_configs":["src/test/regress:installcheck-good"],
+              {"test":"ic-small-opt-off",
+               "make_configs":["src/test/regress:installcheck-small"],
                "pg_settings":{"optimizer":"off"}
               },
-              {"test":"ic-good-opt-on",
-               "make_configs":["src/test/regress:installcheck-good"],
+              {"test":"ic-small-opt-on",
+               "make_configs":["src/test/regress:installcheck-small"],
+               "pg_settings":{"optimizer":"on"}
+              },
+              {"test":"ic-cbdb-opt-off",
+               "make_configs":["src/test/regress:installcheck-cbdb"],
+               "pg_settings":{"optimizer":"off"}
+              },
+              {"test":"ic-cbdb-opt-on",
+               "make_configs":["src/test/regress:installcheck-cbdb"],
                "pg_settings":{"optimizer":"on"}
               },
               {"test":"pax-ic-good-opt-off",
