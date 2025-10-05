@@ -223,6 +223,20 @@ installcheck-cbdb-parallel: all tablespace-setup twophase_pqexecparams
 	$(pg_regress_installcheck) $(REGRESS_OPTS) --schedule=$(srcdir)/parallel_schedule --schedule=$(srcdir)/greenplum_schedule --max-connections=5 $(EXTRA_TESTS) --exclude-tests explain \
 	)
 
+# cbdb parallel plan tests (parallel_schedule only) - for CI parallelization
+installcheck-cbdb-parallel-small: all tablespace-setup twophase_pqexecparams
+	( \
+	export PGOPTIONS='-c optimizer=off -c enable_parallel=true -c min_parallel_table_scan_size=0 -c min_parallel_index_scan_size=0 -c force_parallel_mode=1'; \
+	$(pg_regress_installcheck) $(REGRESS_OPTS) --schedule=$(srcdir)/parallel_schedule --max-connections=5 $(EXTRA_TESTS) --exclude-tests explain \
+	)
+
+# cbdb parallel plan tests (greenplum_schedule only) - for CI parallelization
+installcheck-cbdb-parallel-cbdb: all tablespace-setup twophase_pqexecparams
+	( \
+	export PGOPTIONS='-c optimizer=off -c enable_parallel=true -c min_parallel_table_scan_size=0 -c min_parallel_index_scan_size=0 -c force_parallel_mode=1'; \
+	$(pg_regress_installcheck) $(REGRESS_OPTS) --schedule=$(srcdir)/greenplum_schedule --max-connections=5 $(EXTRA_TESTS) --exclude-tests explain \
+	)
+
 installcheck-tests: all
 	$(pg_regress_installcheck) $(REGRESS_OPTS) $(TESTS) $(EXTRA_TESTS)
 

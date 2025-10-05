@@ -253,6 +253,14 @@ jobs:
                "make_configs":["src/test/regress:installcheck-cbdb"],
                "pg_settings":{"optimizer":"on"}
               },
+              {"test":"ic-cbdb-parallel-small",
+               "make_configs":["src/test/regress:installcheck-cbdb-parallel-small"],
+               "pg_settings":{}
+              },
+              {"test":"ic-cbdb-parallel-cbdb",
+               "make_configs":["src/test/regress:installcheck-cbdb-parallel-cbdb"],
+               "pg_settings":{}
+              },
               {"test":"pax-ic-good-opt-off",
                "make_configs":[
                 "contrib/pax_storage/:pax-test",
