@@ -835,8 +835,9 @@ jobs:
             rm -rf /usr/local/cloudberry-db
 
             # Install RPM with retry logic for mirror issues
+            # Use --releasever=9 to pin to stable Rocky Linux 9 repos (not bleeding-edge 9.6)
             echo "Starting installation..."
-            if ! time dnf install -y --setopt=retries=10 "${RPM_FILE}"; then
+            if ! time dnf install -y --setopt=retries=10 --releasever=9 "${RPM_FILE}"; then
               echo "::error::RPM installation failed"
               exit 1
             fi
@@ -1219,8 +1220,9 @@ jobs:
             rm -rf /usr/local/cloudberry-db
 
             # Install RPM with retry logic for mirror issues
+            # Use --releasever=9 to pin to stable Rocky Linux 9 repos (not bleeding-edge 9.6)
             echo "Starting installation..."
-            if ! time dnf install -y --setopt=retries=10 "${RPM_FILE}"; then
+            if ! time dnf install -y --setopt=retries=10 --releasever=9 "${RPM_FILE}"; then
               echo "::error::RPM installation failed"
               exit 1
             fi
