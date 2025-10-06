@@ -705,7 +705,8 @@ jobs:
     needs: [check-skip, build]
     if: |
       !cancelled() &&
-      (needs.build.result == 'success' || needs.build.result == 'skipped')
+      (needs.build.result == 'success' || needs.build.result == 'skipped') &&
+      github.event.inputs.reuse_artifacts_from_run_id == ''
     runs-on: ubuntu-22.04
     timeout-minutes: 120
 
