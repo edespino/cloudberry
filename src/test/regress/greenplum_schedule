@@ -15,6 +15,11 @@
 #   hitting max_connections limit on segments.
 #
 
+test: autovacuum-template0-segment
+
+# check profile feature
+test: profile
+
 # test for builtin namespace pg_ext_aux
 test: pg_ext_aux
 
@@ -323,8 +328,6 @@ test: fts_recovery_in_progress
 ignore: mirror_replay
 test: autovacuum
 test: autovacuum-segment
-# DISABLED: Causing space issues, needs investigation
-# test: autovacuum-template0-segment
 
 # gpexpand introduce the partial tables, check them if they can run correctly
 test: gangsize gang_reuse
@@ -334,9 +337,6 @@ test: run_utility_gpexpand_phase1
 
 # check correct error message when create extension error on segment
 test: create_extension_fail
-
-# check profile feature
-test: profile
 
 # check offload entry root slice to QE feature
 test: offload_entry_to_qe
