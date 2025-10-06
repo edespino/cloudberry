@@ -18,6 +18,8 @@
 # Run disk-intensive tests early when maximum disk space is available.
 # These tests consume significant disk space through WAL generation, XID consumption,
 # and autovacuum operations. Running them early helps avoid disk exhaustion issues.
+test: autovacuum
+test: autovacuum-segment
 test: autovacuum-template0-segment
 
 # check profile feature
@@ -329,8 +331,6 @@ test: oid_wraparound
 # hence it should be run in isolation.
 test: fts_recovery_in_progress
 ignore: mirror_replay
-test: autovacuum
-test: autovacuum-segment
 
 # gpexpand introduce the partial tables, check them if they can run correctly
 test: gangsize gang_reuse
