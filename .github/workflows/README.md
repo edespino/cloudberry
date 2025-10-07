@@ -178,9 +178,12 @@ GitHub Actions workflows are enabled in forks, allowing you to validate changes 
    - Go to your fork's **Actions** tab
    - Click **"I understand my workflows, go ahead and enable them"**
 
-3. **Configure secrets** (if needed for advanced features):
-   - Go to fork **Settings** → **Secrets and variables** → **Actions**
-   - Most workflows don't require additional secrets
+**Secrets Configuration:**
+
+No manual secret configuration is required for the main build and test workflows.
+
+- `GITHUB_TOKEN` is automatically provided by GitHub and used when downloading artifacts from previous runs (artifact reuse feature)
+- DockerHub secrets (`DOCKERHUB_USER`, `DOCKERHUB_TOKEN`) are only required for building custom container images (advanced/maintainer use case, not needed for typical development)
 
 ### Workflow Behavior in Forks
 
