@@ -53,12 +53,13 @@ Also, you need to run the following command at the top level of the Cloudberry s
 git submodule update --init --recursive
 ```
 
-The following submodules will be downloaded for building and tesing PAX:
-- yyjson (`dependency/yyjson`)
-- cpp-stub (`contrib/pax_storage/src/cpp/cotnrib`)
-- googlebench (`contrib/pax_storage/src/cpp/cotnrib`)
-- googletest (`contrib/pax_storage/src/cpp/cotnrib`)
-- tabulate (`contrib/pax_storage/src/cpp/cotnrib`)
+The following submodules will be downloaded for building and testing PAX:
+- cpp-stub (`contrib/pax_storage/src/cpp/contrib`)
+- googlebench (`contrib/pax_storage/src/cpp/contrib`)
+- googletest (`contrib/pax_storage/src/cpp/contrib`)
+- tabulate (`contrib/pax_storage/src/cpp/contrib`)
+
+**Note:** yyjson is automatically downloaded via CMake FetchContent during configuration and does not require manual submodule initialization.
 
 ### Build debug version
 

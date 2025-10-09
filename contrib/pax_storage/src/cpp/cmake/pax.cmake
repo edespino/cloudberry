@@ -143,7 +143,8 @@ if (USE_MANIFEST_API)
     set(pax_catalog_src ${pax_catalog_src} catalog/pax_manifest_impl.cc)
   else()
     # use manifest implementation
-    set(pax_target_include ${pax_target_include} ${TOP_DIR}/dependency/yyjson/src)
+    # yyjson is fetched via FetchContent, use the source directory
+    set(pax_target_include ${pax_target_include} ${yyjson_SOURCE_DIR}/src)
     set(pax_catalog_src ${pax_catalog_src} ${manifest_src})
   endif()
 else() # USE_MANIFEST_API

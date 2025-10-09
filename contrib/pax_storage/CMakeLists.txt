@@ -100,13 +100,31 @@ include(FindDependencies)
 add_subdirectory(src/cpp)
 
 if(USE_MANIFEST_API AND NOT USE_PAX_CATALOG)
-    set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-    set(SAVED_CMAKE_INSTALL_SO_NO_EXE ${CMAKE_INSTALL_SO_NO_EXE})
+    include(FetchContent)
 
-    set(BUILD_SHARED_LIBS ON)
-    set(CMAKE_INSTALL_SO_NO_EXE OFF)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/../../dependency/yyjson ${CMAKE_BINARY_DIR}/yyjson_build)
+    # Try to find yyjson as a system package first
+    find_package(yyjson QUIET)
 
-    set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
-    set(CMAKE_INSTALL_SO_NO_EXE ${SAVED_CMAKE_INSTALL_SO_NO_EXE})
+    if(NOT yyjson_FOUND)
+        message(STATUS "yyjson not found in system, fetching from GitHub...")
+        FetchContent_Declare(
+            yyjson
+            GIT_REPOSITORY https://github.com/ibireme/yyjson.git
+            GIT_TAG 0.10.0
+            GIT_SHALLOW TRUE
+        )
+
+        set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+        set(SAVED_CMAKE_INSTALL_SO_NO_EXE ${CMAKE_INSTALL_SO_NO_EXE})
+
+        set(BUILD_SHARED_LIBS ON)
+        set(CMAKE_INSTALL_SO_NO_EXE OFF)
+
+        FetchContent_MakeAvailable(yyjson)
+
+        set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
+        set(CMAKE_INSTALL_SO_NO_EXE ${SAVED_CMAKE_INSTALL_SO_NO_EXE})
+    else()
+        message(STATUS "Using system yyjson package")
+    endif()
 endif()
