@@ -110,7 +110,7 @@ if(USE_MANIFEST_API AND NOT USE_PAX_CATALOG)
         FetchContent_Declare(
             yyjson
             GIT_REPOSITORY https://github.com/ibireme/yyjson.git
-            GIT_TAG 0.10.0
+            GIT_TAG 0.12.0
             GIT_SHALLOW TRUE
         )
 
