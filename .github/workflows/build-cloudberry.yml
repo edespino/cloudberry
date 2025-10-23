@@ -102,7 +102,7 @@ name: Apache Cloudberry Build
 
 on:
   push:
-    branches: [main]
+    branches: [main, test-fix-validation]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, edited]
